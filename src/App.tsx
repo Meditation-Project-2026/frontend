@@ -1,21 +1,18 @@
-// App.tsx
-import { Routes, Route } from 'react-router-dom'
-
-function Home() {
-  return <h1>Home</h1>
-}
-
-function About() {
-  return <h1>About</h1>
-}
+import BreathingMonitor from "./pages/BreathingMonitor";
+import FaceDetection from "./pages/FaceDetection";
+import MeditationFeedback from "./pages/MeditationFeedback";
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Home />} />
-      <Route path="/about" element={<About />} />
-    </Routes>
-  )
+    <div className="App">
+      <div className="max-w-md mx-auto min-h-screen shadow-2xl bg-white dark:bg-[#1A4D43]">
+        {/*<MeditationFeedback />*/}
+        {/*<FaceDetection />*/}
+        {/* <BreathingMonitor /> */}
+       <FaceDetection />
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;
