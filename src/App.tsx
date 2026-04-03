@@ -1,6 +1,4 @@
 import BreathingMonitor from "./pages/BreathingMonitor";
-import FaceDetection from "./pages/FaceDetection";
-import MeditationFeedback from "./pages/MeditationFeedback";
 
 function App() {
   return (
@@ -9,7 +7,7 @@ function App() {
         {/*<MeditationFeedback />*/}
         {/*<FaceDetection />*/}
         {/* <BreathingMonitor /> */}
-       <FaceDetection />
+       <BreathingMonitor />
       </div>
     </div>
   );
