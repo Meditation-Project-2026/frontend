@@ -1,15 +1,48 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 
 const CameraFrame: React.FC = () => {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    const initCamera = async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user' },
+          audio: false,
+        });
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+          console.log('Camera initialized in CameraFrame');
+        }
+      } catch (err) {
+        console.error('Failed to access camera:', err);
+      }
+    };
+
+    initCamera();
+
+    return () => {
+      // 컴포넌트 언마운트 시 스트림 정지
+      if (videoRef.current?.srcObject) {
+        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+        tracks.forEach((track) => track.stop());
+      }
+    };
+  }, []);
+
   return (
     <div className="bg-white dark:bg-[#245d52] p-3 rounded-[2rem] shadow-md w-full aspect-[3.5/4.5] relative flex items-center justify-center mb-8 overflow-hidden">
       <div className="w-full h-full rounded-[1.5rem] overflow-hidden relative bg-gray-100 dark:bg-gray-900 group">
-        {/* 실제 카메라 구현 시 <video> 태그가 들어갈 자리입니다 */}
-        <img 
-          alt="Camera feed placeholder" 
-          className="w-full h-full object-cover" 
-          src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=1000&auto=format&fit=crop"
+        {/* 실제 카메라 비디오 */}
+        <video
+          ref={videoRef}
+          autoPlay
+          playsInline
+          muted
+          className="w-full h-full object-cover"
         />
+        
         <div className="absolute inset-0 bg-black/5"></div>
         
         {/* Corner Guides */}
