@@ -46,6 +46,7 @@ const FaceDetection: React.FC = () => {
 
   // 얼굴 인식 완료 후 명상 시작
   const handleStartMeditation = async () => {
+    console.log("버튼 클릭됨!"); // 클릭 확인 로그
     if (!meditationId) {
       setError('명상 ID가 전달되지 않았습니다.');
       return;
@@ -88,6 +89,7 @@ const FaceDetection: React.FC = () => {
         <CameraFrame />
         <ProgressCircle percentage={Math.round(progress)} />
 
+
         {/* 에러 메시지 */}
         {error && (
           <div className="w-full mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
@@ -108,17 +110,6 @@ const FaceDetection: React.FC = () => {
               }`}
             >
               {isLoading ? '명상 시작 중...' : '명상 시작하기'}
-            </button>
-            <button
-              onClick={handleCancel}
-              disabled={isLoading}
-              className={`w-full py-3 px-4 rounded-2xl font-bold border-2 border-[#45947D] text-[#45947D] transition-all ${
-                isLoading
-                  ? 'opacity-50 cursor-not-allowed'
-                  : 'hover:bg-[#45947D]/10 active:scale-95'
-              }`}
-            >
-              다시 하기
             </button>
           </div>
         )}

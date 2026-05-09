@@ -1,34 +1,17 @@
 import { useEffect, useRef } from 'react';
 
-const RecognitionArea: React.FC = () => {
+interface RecognitionAreaProps {
+  videoStream: MediaStream | null; // 부모로부터 스트림을 받습니다.
+}
+
+const RecognitionArea: React.FC<RecognitionAreaProps> = ({ videoStream }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
-    const initCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user' },
-          audio: false,
-        });
-
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          console.log('Camera initialized in RecognitionArea');
-        }
-      } catch (err) {
-        console.error('Failed to access camera:', err);
-      }
-    };
-
-    initCamera();
-
-    return () => {
-      if (videoRef.current?.srcObject) {
-        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-        tracks.forEach((track) => track.stop());
-      }
-    };
-  }, []);
+    if (videoRef.current && videoStream) {
+      videoRef.current.srcObject = videoStream; // 부모가 준 스트림을 그대로 연결
+    }
+  }, [videoStream]);
 
   return (
     <section className="relative mb-12">
@@ -41,7 +24,6 @@ const RecognitionArea: React.FC = () => {
           className="w-full h-full object-cover"
         />
 
-        <div className="absolute inset-x-4 top-1/2 h-0.5 bg-[#45947D] shadow-[0_0_15px_#6BE6C1] animate-pulse"></div>
 
         <div className="absolute inset-6 border-2 border-[#45947D]/40 rounded-3xl"></div>
       </div>

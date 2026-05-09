@@ -11,37 +11,6 @@ interface FeedbackState {
   error: string | null;
 }
 
-// 🎭 Mock 데이터
-const mockFeedbackData: MeditationFeedbackResponse = {
-  meditationDate: '2026-04-05',
-  title: '아침 집중 명상',
-  totalDuration: '10분 00초',
-  lfhf: {
-    start: 1.41,
-    end: 1.20,
-    changeRate: -14.9,
-  },
-  heartRate: {
-    start: 68,
-    end: 62,
-    diff: -6,
-  },
-  resultStatus: 'SUCCESS',
-  userNote: null,
-  recommendedMeditations: [
-    {
-      id: 2,
-      title: '숲 소리 명상',
-      backgroundUrl: 'https://images.unsplash.com/photo-1469022563149-aa64dbd37dae?w=500&h=300&fit=crop',
-    },
-    {
-      id: 3,
-      title: '스트레스 해소 명상',
-      backgroundUrl: 'https://images.unsplash.com/photo-1520763185298-1b434c919eba?w=500&h=300&fit=crop',
-    },
-  ],
-};
-
 export default function FeedbackPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -59,27 +28,14 @@ export default function FeedbackPage() {
 
   // 📊 피드백 데이터 로드
   useEffect(() => {
+    if (!logId) return;
     const loadFeedback = async () => {
-      if (!logId) {
-        setFeedback({
-          data: null,
-          loading: false,
-          error: 'logId가 없습니다.',
-        });
-        return;
-      }
-
+      setFeedback({ data: null, loading: true, error: null });
       try {
-        setFeedback({ data: null, loading: true, error: null });
-        
-        // 🎭 Mock 데이터 사용 (백엔드 없을 때)
-        // 실제 백엔드 연결:
-        // const result = await getMeditationFeedback(parseInt(logId));
-        
-        const result = mockFeedbackData; // ← Mock 데이터
-        
-        setFeedback({ data: result, loading: false, error: null });
-        setUserNote(result.userNote || '');
+        // 실제 서버에서 데이터 받아오기
+        const data = await getMeditationFeedback(parseInt(logId));
+        setFeedback({ data, loading: false, error: null });
+        setUserNote(data.userNote || '');
       } catch (err) {
         console.error('Failed to load feedback:', err);
         setFeedback({
@@ -131,6 +87,22 @@ export default function FeedbackPage() {
     return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
   };
 
+  // 시간 포맷팅 (초 -> OO분 OO초)
+  const formatDuration = (seconds: string | number): string => {
+    const sec = typeof seconds === 'string' ? parseInt(seconds) : seconds;
+    if (isNaN(sec) || sec < 0) return '-';
+    const min = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${min}분 ${s}초`;
+  };
+
+  // 서버에서 받은 시간 대신 localStorage 값 우선 사용
+  let totalDuration = feedback.data?.totalDuration;
+  const lastMeditationTime = localStorage.getItem('lastMeditationTime');
+  if (lastMeditationTime && !isNaN(Number(lastMeditationTime))) {
+    totalDuration = Number(lastMeditationTime);
+  }
+
   // 로딩 중
   if (feedback.loading) {
     return (
@@ -167,11 +139,37 @@ export default function FeedbackPage() {
   const { data } = feedback;
   const isSuccess = data.resultStatus === 'SUCCESS';
 
-  const lfhfChange = data.lfhf.changeRate;
-  const hrChange = data.heartRate.diff;
+  // 값 포맷팅
+  const lfhfStart = data.lfhf.start !== null && data.lfhf.start !== undefined ? Number(data.lfhf.start.toFixed(2)) : '-';
+  const lfhfEnd = data.lfhf.end !== null && data.lfhf.end !== undefined ? Number(data.lfhf.end.toFixed(2)) : '-';
+  const lfhfChange = data.lfhf.changeRate !== null && data.lfhf.changeRate !== undefined ? Number(data.lfhf.changeRate.toFixed(1)) : '-';
+  const hrStart = data.heartRate.start !== null && data.heartRate.start !== undefined ? Math.round(data.heartRate.start) : '-';
+  const hrEnd = data.heartRate.end !== null && data.heartRate.end !== undefined ? Math.round(data.heartRate.end) : '-';
+  const hrChange = data.heartRate.diff !== null && data.heartRate.diff !== undefined ? Math.round(data.heartRate.diff) : '-';
 
-  const resultColor = isSuccess ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700';
-  const resultText = isSuccess ? '명상 성공을 통해 안정되었습니다.' : '명상 미완성';
+  // 동적 피드백 멘트
+  let resultText = '';
+  if (lfhfChange !== '-' && !isNaN(Number(lfhfChange))) {
+    if (Number(lfhfChange) > 0) {
+      resultText = '깊은 이완 상태에 도달하셨습니다. 심신이 안정된 상태입니다.';
+    } else {
+      resultText = '명상 중 잡념이 많으셨나요? 호흡에 조금 더 집중해보세요.';
+    }
+  } else {
+    resultText = isSuccess ? '명상 성공을 통해 안정되었습니다.' : '명상 미완성';
+  }
+
+  // LF/HF 변화율에 따라 색상 결정
+  let resultColor = '';
+  if (lfhfChange !== '-' && !isNaN(Number(lfhfChange))) {
+    if (Number(lfhfChange) > 0) {
+      resultColor = 'bg-green-100 text-green-700';
+    } else {
+      resultColor = 'bg-red-100 text-red-700';
+    }
+  } else {
+    resultColor = 'bg-red-100 text-red-700';
+  }
 
   return (
     <div className="min-h-screen bg-[#F8FBFF] text-[#2D3142] pb-10">
@@ -193,7 +191,7 @@ export default function FeedbackPage() {
           </div>
           <div className="flex justify-between">
             <span>총 시간</span>
-            <span className="text-[#0F172A] font-medium">{data.totalDuration}</span>
+            <span className="text-[#0F172A] font-medium">{formatDuration(totalDuration)}</span>
           </div>
         </div>
 
@@ -222,20 +220,20 @@ export default function FeedbackPage() {
 
         <FeedbackCard
           title="LF/HF 변화"
-          value={data.lfhf.end}
+          value={lfhfEnd}
           unit="ratio"
-          decrease={`${Math.abs(lfhfChange).toFixed(1)}%`}
-          start={{ val: data.lfhf.start, percent: `${Math.min(data.lfhf.start * 30, 100)}%` }}
-          end={{ val: data.lfhf.end, percent: `${Math.min(data.lfhf.end * 30, 100)}%` }}
+          change={`${lfhfChange !== '-' ? Math.abs(Number(lfhfChange)).toFixed(1) : '-'}%`}
+          start={{ val: lfhfStart, percent: `${lfhfStart !== '-' ? Math.min(lfhfStart * 30, 100) : 0}%` }}
+          end={{ val: lfhfEnd, percent: `${lfhfEnd !== '-' ? Math.min(lfhfEnd * 30, 100) : 0}%` }}
         />
 
         <FeedbackCard
           title="심박수 변화"
-          value={data.heartRate.end}
+          value={hrEnd}
           unit="BPM"
-          decrease={`${Math.abs(hrChange)}bpm`}
-          start={{ val: data.heartRate.start, percent: `${Math.min((data.heartRate.start / 120) * 100, 100)}%` }}
-          end={{ val: data.heartRate.end, percent: `${Math.min((data.heartRate.end / 120) * 100, 100)}%` }}
+          change={`${hrChange !== '-' ? Math.abs(Number(hrChange)) : '-'}bpm`}
+          start={{ val: hrStart, percent: `${hrStart !== '-' ? Math.min((hrStart / 120) * 100, 100) : 0}%` }}
+          end={{ val: hrEnd, percent: `${hrEnd !== '-' ? Math.min((hrEnd / 120) * 100, 100) : 0}%` }}
         />
 
         {!isSuccess && data.recommendedMeditations.length > 0 && (
