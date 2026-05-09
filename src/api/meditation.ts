@@ -38,14 +38,17 @@ export const connectRPPGStream = (
   onError?: (error: Event) => void,
   onClose?: (event: CloseEvent) => void
 ): WebSocket => {
-  const wsUrl = `ws://localhost:8000/v1/ai/rppg-stream`;
+  const wsUrl = `ws://127.0.0.1:8000/v1/ai/rppg-stream`;
   const ws = new WebSocket(wsUrl);
 
-  ws.onopen = () => {
-    console.log('WebSocket connected');
-    // Send logId on connection
-    ws.send(JSON.stringify({ logId }));
-  };
+    ws.onopen = () => {
+      console.log('WebSocket connected');
+      // 서버의 RppgStreamRequest 규격(logId, frame)을 반드시 지켜야 합니다.
+      ws.send(JSON.stringify({
+        logId: Number(logId),
+        frame: ""
+      }));
+    };
 
   ws.onmessage = (event) => {
     try {
@@ -73,10 +76,21 @@ export const connectRPPGStream = (
  * WebSocket에 프레임 데이터 전송
  */
 export const sendFrameToWebSocket = (ws: WebSocket, frameData: string | Blob | BufferSource) => {
-  if (ws.readyState === WebSocket.OPEN) {
-    ws.send(frameData);
-  } else {
-    console.warn('WebSocket is not open. Current state:', ws.readyState);
+  // frameData가 base64 문자열이어야 함
+  // logId는 최초 연결 시 이미 전송되었으므로 0으로 보냄 (AI 서버가 frame만 사용)
+  // 실제로는 logId를 유지하려면 ws 객체에 저장하거나 클로저로 관리할 수 있음
+  let logId = 0;
+  try {
+    // frameData가 dataURL(base64)일 때만 처리
+    if (typeof frameData === 'string') {
+      // logId를 ws 객체에서 추출하거나, 필요시 파라미터로 넘길 수 있음
+      // 여기서는 0으로 고정 (AI 서버가 frame만 사용)
+      ws.send(JSON.stringify({ logId, frame: frameData }));
+    } else {
+      console.warn('frameData is not a base64 string');
+    }
+  } catch (e) {
+    console.error('Failed to send frame JSON:', e);
   }
 };
 

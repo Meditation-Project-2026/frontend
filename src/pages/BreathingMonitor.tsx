@@ -35,35 +35,49 @@ const BreathingMonitor: React.FC = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // 웹캠 초기화
+  // 1. 스트림을 담을 상태(State) 추가
+  const [stream, setStream] = useState<MediaStream | null>(null);
+
+// 2. 웹캠 초기화 및 정리 로직 통합
   useEffect(() => {
     const initCamera = async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user' },
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: 'user'
+          },
           audio: false,
         });
 
+        setStream(mediaStream); // 자식(RecognitionArea) 전달용
+
         if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          console.log('Camera initialized');
+          videoRef.current.srcObject = mediaStream; // 서버 전송 캡처용
         }
+        console.log('Camera initialized and stream set');
       } catch (err) {
-        console.error('Failed to access camera:', err);
+        console.error('카메라 에러:', err);
         setError('카메라 접근이 거부되었습니다.');
       }
     };
 
     initCamera();
 
+    // 🚨 [중요] 컴포넌트가 사라질 때(unmount) 카메라를 확실히 끕니다.
     return () => {
-      // 컴포넌트 언마운트 시 스트림 정지
+      console.log('Stopping camera tracks...');
       if (videoRef.current?.srcObject) {
         const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
         tracks.forEach((track) => track.stop());
       }
+      // 상태에 저장된 스트림도 안전하게 정지
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
     };
-  }, []);
+  }, []); // 빈 배열이어야 처음에 딱 한 번만 실행됩니다!
 
   // 명상 시간 카운트
   useEffect(() => {
@@ -78,64 +92,71 @@ const BreathingMonitor: React.FC = () => {
     };
   }, [isRunning]);
 
-  // WebSocket 연결
-  useEffect(() => {
-    if (!logId) {
-      setError('logId가 없습니다.');
-      return;
+// BreathingMonitor.tsx의 WebSocket useEffect 부분
+useEffect(() => {
+  // 🚨 [핵심 가드] 이미 연결 중이거나 logId가 없으면 아무것도 안 함
+  if (!logId || wsRef.current) return;
+
+  console.log("WebSocket connecting with logId:", logId);
+
+  const handleMessage = (data: RPPGStreamMessage) => {
+    // 서버에서 데이터가 오면 연결 상태 true로 변경
+    setIsConnected(true);
+    setBiometricData({
+      heartRate: Math.round(data.heartRate * 10) / 10,
+      lfHfRatio: Math.round(data.lfHfRatio * 100) / 100,
+      isFaceDetected: data.isFaceDetected,
+    });
+
+  // 2. 데이터가 왔다면 연결 상태를 true로 (한 번만 실행되도록 가드 설정)
+    if (!isConnected) {
+      setIsConnected(true);
+    }
+  };
+
+  const handleError = (e: Event) => {
+    console.error('WebSocket error:', e);
+    // 에러 발생 시 상태 초기화
+    setIsConnected(false);
+  };
+
+  // 1. 소켓 연결
+  const ws = connectRPPGStream(parseInt(logId), handleMessage, handleError);
+  wsRef.current = ws;
+
+  const frameInterval = setInterval(() => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+
+    // 🚨 비디오가 실제로 재생 중인지 강제로 체크
+    if (video && (video.paused || video.ended)) {
+      video.play().catch(e => console.error("Play failed:", e));
     }
 
-    const handleMessage = (data: RPPGStreamMessage) => {
-      setBiometricData({
-        heartRate: Math.round(data.heartRate * 10) / 10, // 소수점 1자리
-        lfHfRatio: Math.round(data.lfHfRatio * 100) / 100, // 소수점 2자리
-        isFaceDetected: data.isFaceDetected,
-      });
-    };
+    if (video && canvas && video.readyState >= 2) {
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        // 비디오의 현재 시점 데이터를 강제로 캔버스에 복사
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const frameData = canvas.toDataURL('image/jpeg', 0.5);
 
-    const handleError = (error: Event) => {
-      console.error('WebSocket error:', error);
-      setError('WebSocket 연결 오류가 발생했습니다.');
-    };
-
-    const handleClose = (event: CloseEvent) => {
-      console.log('WebSocket closed:', event);
-      setIsConnected(false);
-    };
-
-    // WebSocket 연결
-    wsRef.current = connectRPPGStream(parseInt(logId), handleMessage, handleError, handleClose);
-    setIsConnected(true);
-
-    // WebSocket 연결 후 프레임 전송 시작
-    const frameInterval = setInterval(() => {
-      if (canvasRef.current && videoRef.current && wsRef.current) {
-        try {
-          const canvas = canvasRef.current;
-          const video = videoRef.current;
-          const ctx = canvas.getContext('2d');
-
-          if (ctx) {
-            // 비디오 프레임을 canvas에 그리기
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-            // Canvas를 Base64로 변환 후 전송
-            const frameData = canvas.toDataURL('image/jpeg', 0.8);
-            sendFrameToWebSocket(wsRef.current, frameData);
-          }
-        } catch (err) {
-          console.error('Failed to send frame:', err);
-        }
+        // 여기서 logId는 아까 생성한 진짜 번호를 넣어줘야 서버가 기록을 남깁니다!
+        sendFrameToWebSocket(wsRef.current, frameData, Number(logId));
       }
-    }, 100); // 100ms마다 프레임 전송 (약 10fps)
+    }
+  }, 200);
 
-    return () => {
-      clearInterval(frameInterval);
-      if (wsRef.current) {
-        wsRef.current.close();
-      }
-    };
-  }, [logId]);
+  return () => {
+    // 3. 페이지 나갈 때만 확실히 닫기
+    console.log("Cleaning up WebSocket...");
+    clearInterval(frameInterval);
+    if (wsRef.current) {
+      wsRef.current.close();
+      wsRef.current = null;
+    }
+    setIsConnected(false);
+  };
+}, [logId]); // 의존성 배열에 logId 하나만 두기
 
   // 명상 종료
   const handleEndMeditation = () => {
@@ -143,6 +164,18 @@ const BreathingMonitor: React.FC = () => {
 
     // WebSocket 종료
     if (wsRef.current) {
+      // 명상 시간(초)을 서버로 전송 (AI 서버가 WebSocket 종료 시 summary 저장)
+      try {
+        // 종료 직전, 서버로 명상 시간 전송
+        wsRef.current.send(
+          JSON.stringify({
+            type: 'END',
+            totalDuration: meditationTime,
+          })
+        );
+      } catch (e) {
+        console.warn('명상 시간 전송 실패:', e);
+      }
       wsRef.current.close();
     }
 
@@ -151,8 +184,10 @@ const BreathingMonitor: React.FC = () => {
       clearInterval(timerRef.current);
     }
 
+    // 명상 시간 localStorage 저장
+    localStorage.setItem('lastMeditationTime', meditationTime.toString());
+
     // logId와 함께 피드백 페이지로 이동
-    // (실제로는 AI 서버에서 분석을 완료하고 데이터가 저장되기까지 잠시 대기)
     setTimeout(() => {
       navigate(`/meditation-feedback?logId=${logId}`);
     }, 2000);
@@ -219,7 +254,7 @@ const BreathingMonitor: React.FC = () => {
         </div>
 
         {/* 얼굴 감지 영역 */}
-        <RecognitionArea />
+        <RecognitionArea videoStream={stream} />
 
         {/* 생체 지표 카드 */}
         <section className="grid grid-cols-2 gap-4 mb-8">
@@ -264,3 +299,4 @@ const BreathingMonitor: React.FC = () => {
 };
 
 export default BreathingMonitor;
+

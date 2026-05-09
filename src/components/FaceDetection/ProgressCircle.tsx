@@ -29,7 +29,7 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({ percentage }) => {
         </div>
       </div>
       <p className="text-[#45947D] dark:text-[#6BE6C1] font-medium text-base animate-pulse">
-        얼굴을 감지 중입니다...
+        {percentage >= 100 ? '얼굴 감지 완료' : '얼굴을 감지 중입니다...'}
       </p>
     </div>
   );
