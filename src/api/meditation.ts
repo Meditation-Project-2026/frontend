@@ -75,11 +75,10 @@ export const connectRPPGStream = (
 /**
  * WebSocket에 프레임 데이터 전송
  */
-export const sendFrameToWebSocket = (ws: WebSocket, frameData: string | Blob | BufferSource) => {
+export const sendFrameToWebSocket = (ws: WebSocket, frameData: string | Blob | BufferSource, logId: number) => {
   // frameData가 base64 문자열이어야 함
   // logId는 최초 연결 시 이미 전송되었으므로 0으로 보냄 (AI 서버가 frame만 사용)
   // 실제로는 logId를 유지하려면 ws 객체에 저장하거나 클로저로 관리할 수 있음
-  let logId = 0;
   try {
     // frameData가 dataURL(base64)일 때만 처리
     if (typeof frameData === 'string') {

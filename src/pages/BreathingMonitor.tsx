@@ -141,7 +141,9 @@ useEffect(() => {
         const frameData = canvas.toDataURL('image/jpeg', 0.5);
 
         // 여기서 logId는 아까 생성한 진짜 번호를 넣어줘야 서버가 기록을 남깁니다!
-        sendFrameToWebSocket(wsRef.current, frameData, Number(logId));
+        if (wsRef.current) {
+          sendFrameToWebSocket(wsRef.current, frameData, Number(logId));
+        }
       }
     }
   }, 200);

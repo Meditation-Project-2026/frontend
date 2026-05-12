@@ -1,8 +1,9 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { LogIdProvider } from './contexts/LogIdContext';
 import FaceDetection from './pages/FaceDetection';
 import BreathingMonitor from './pages/BreathingMonitor';
 import MeditationFeedback from './pages/MeditationFeedback';
+import Home from './pages/Home';
 
 function App() {
   return (
@@ -21,7 +22,7 @@ function App() {
               <Route path="/meditation-feedback" element={<MeditationFeedback />} />
 
               {/* 기본 리다이렉트 */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="/" element={<Home />} />
             </Routes>
           </div>
         </div>
