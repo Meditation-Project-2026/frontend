@@ -90,7 +90,7 @@ export default function FeedbackPage() {
   // 시간 포맷팅 (초 -> OO분 OO초)
   const formatDuration = (seconds: string | number): string => {
     const sec = typeof seconds === 'string' ? parseInt(seconds) : seconds;
-    if (isNaN(sec) || sec < 0) return '-';
+    if (isNaN(sec) || sec < 0) return '0';
     const min = Math.floor(sec / 60);
     const s = sec % 60;
     return `${min}분 ${s}초`;
@@ -100,7 +100,7 @@ export default function FeedbackPage() {
   let totalDuration = feedback.data?.totalDuration;
   const lastMeditationTime = localStorage.getItem('lastMeditationTime');
   if (lastMeditationTime && !isNaN(Number(lastMeditationTime))) {
-    totalDuration = Number(lastMeditationTime);
+    totalDuration = String(Number(lastMeditationTime));
   }
 
   // 로딩 중
@@ -140,16 +140,16 @@ export default function FeedbackPage() {
   const isSuccess = data.resultStatus === 'SUCCESS';
 
   // 값 포맷팅
-  const lfhfStart = data.lfhf.start !== null && data.lfhf.start !== undefined ? Number(data.lfhf.start.toFixed(2)) : '-';
-  const lfhfEnd = data.lfhf.end !== null && data.lfhf.end !== undefined ? Number(data.lfhf.end.toFixed(2)) : '-';
-  const lfhfChange = data.lfhf.changeRate !== null && data.lfhf.changeRate !== undefined ? Number(data.lfhf.changeRate.toFixed(1)) : '-';
-  const hrStart = data.heartRate.start !== null && data.heartRate.start !== undefined ? Math.round(data.heartRate.start) : '-';
-  const hrEnd = data.heartRate.end !== null && data.heartRate.end !== undefined ? Math.round(data.heartRate.end) : '-';
-  const hrChange = data.heartRate.diff !== null && data.heartRate.diff !== undefined ? Math.round(data.heartRate.diff) : '-';
+  const lfhfStart = data.lfhf.start !== null && data.lfhf.start !== undefined ? Number(data.lfhf.start.toFixed(2)) : 0;
+  const lfhfEnd = data.lfhf.end !== null && data.lfhf.end !== undefined ? Number(data.lfhf.end.toFixed(2)) : 0;
+  const lfhfChange = data.lfhf.changeRate !== null && data.lfhf.changeRate !== undefined ? Number(data.lfhf.changeRate.toFixed(1)) : 0;
+  const hrStart = data.heartRate.start !== null && data.heartRate.start !== undefined ? Math.round(data.heartRate.start) : 0;
+  const hrEnd = data.heartRate.end !== null && data.heartRate.end !== undefined ? Math.round(data.heartRate.end) : 0;
+  const hrChange = data.heartRate.diff !== null && data.heartRate.diff !== undefined ? Math.round(data.heartRate.diff) : 0;
 
   // 동적 피드백 멘트
   let resultText = '';
-  if (lfhfChange !== '-' && !isNaN(Number(lfhfChange))) {
+  if (lfhfChange !== 0 && !isNaN(Number(lfhfChange))) {
     if (Number(lfhfChange) > 0) {
       resultText = '깊은 이완 상태에 도달하셨습니다. 심신이 안정된 상태입니다.';
     } else {
@@ -161,7 +161,7 @@ export default function FeedbackPage() {
 
   // LF/HF 변화율에 따라 색상 결정
   let resultColor = '';
-  if (lfhfChange !== '-' && !isNaN(Number(lfhfChange))) {
+  if (lfhfChange !== 0 && !isNaN(Number(lfhfChange))) {
     if (Number(lfhfChange) > 0) {
       resultColor = 'bg-green-100 text-green-700';
     } else {
@@ -191,7 +191,7 @@ export default function FeedbackPage() {
           </div>
           <div className="flex justify-between">
             <span>총 시간</span>
-            <span className="text-[#0F172A] font-medium">{formatDuration(totalDuration)}</span>
+            <span className="text-[#0F172A] font-medium">{formatDuration(totalDuration || 0)}</span>
           </div>
         </div>
 
@@ -222,18 +222,18 @@ export default function FeedbackPage() {
           title="LF/HF 변화"
           value={lfhfEnd}
           unit="ratio"
-          change={`${lfhfChange !== '-' ? Math.abs(Number(lfhfChange)).toFixed(1) : '-'}%`}
-          start={{ val: lfhfStart, percent: `${lfhfStart !== '-' ? Math.min(lfhfStart * 30, 100) : 0}%` }}
-          end={{ val: lfhfEnd, percent: `${lfhfEnd !== '-' ? Math.min(lfhfEnd * 30, 100) : 0}%` }}
+          change={`${lfhfChange !== 0 ? Math.abs(Number(lfhfChange)).toFixed(1) : 0}%`}
+          start={{ val: lfhfStart, percent: `${lfhfStart !== 0 ? Math.min(lfhfStart * 30, 100) : 0}%` }}
+          end={{ val: lfhfEnd, percent: `${lfhfEnd !== 0 ? Math.min(lfhfEnd * 30, 100) : 0}%` }}
         />
 
         <FeedbackCard
           title="심박수 변화"
           value={hrEnd}
           unit="BPM"
-          change={`${hrChange !== '-' ? Math.abs(Number(hrChange)) : '-'}bpm`}
-          start={{ val: hrStart, percent: `${hrStart !== '-' ? Math.min((hrStart / 120) * 100, 100) : 0}%` }}
-          end={{ val: hrEnd, percent: `${hrEnd !== '-' ? Math.min((hrEnd / 120) * 100, 100) : 0}%` }}
+          change={`${hrChange !== 0 ? Math.abs(Number(hrChange)) : 0}bpm`}
+          start={{ val: hrStart, percent: `${hrStart !== 0 ? Math.min((hrStart / 120) * 100, 100) : 0}%` }}
+          end={{ val: hrEnd, percent: `${hrEnd !== 0 ? Math.min((hrEnd / 120) * 100, 100) : 0}%` }}
         />
 
         {!isSuccess && data.recommendedMeditations.length > 0 && (

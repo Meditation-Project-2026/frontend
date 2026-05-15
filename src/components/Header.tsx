@@ -1,4 +1,4 @@
-import React from 'react';
+'react';
 import { ChevronLeft, Share2, X } from 'lucide-react'; // 필요한 아이콘들을 가져옵니다.
 
 interface HeaderProps {
