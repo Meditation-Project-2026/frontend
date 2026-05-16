@@ -1,5 +1,3 @@
-'react';
-
 export interface MeditationItem {
   id: number;
   title: string;
@@ -83,7 +81,7 @@ const RecentMeditations: React.FC<RecentMeditationsProps> = ({
           <span className="material-symbols-outlined text-[16px]">chevron_right</span>
         </button>
       </div>
-      <div className="flex overflow-x-auto hide-scrollbar px-6 gap-4">
+      <div className="flex overflow-x-auto px-6 gap-4">
         {items.map((item) => (
           <MeditationCard key={item.id} item={item} onClick={onItemClick} />
         ))}
