@@ -12,17 +12,13 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
 
   const handleStartMeditation = () => {
-    navigate(`/face-detection?id=${DEFAULT_MEDITATION_ID}`);
+    navigate(`/face-detection?id=${DEFAULT_MEDITATION_ID}&type=meditation`);
   };
 
   const handleStartBreathing = () => {
-    navigate(`/breathing-monitor`);
+    navigate(`/face-detection?id=${DEFAULT_MEDITATION_ID}&type=breathing`);
   };
-
-  const handleCameraClick = () => {
-    navigate(`/face-detection?id=${DEFAULT_MEDITATION_ID}`);
-  };
-
+  
   return (
     <div className="w-full max-w-md bg-background-serene flex flex-col relative min-h-screen pb-24">
       {/* 헤더 */}
