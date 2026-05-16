@@ -1,10 +1,21 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+
 import type { RPPGStreamMessage } from '../api/meditation';
-import DataCard from "../components/BreathingMonitor/DataCard";
-import Header from "../components/Header";
-import RecognitionArea from "../components/BreathingMonitor/RecognitionArea";
-import { connectRPPGStream, sendFrameToWebSocket } from '../api/meditation';
+import {
+  connectRPPGStream,
+  sendFrameToWebSocket,
+} from '../api/meditation';
+
+import Header from '../components/Header';
+import RecognitionArea from '../components/BreathingMonitor/RecognitionArea';
+
+import ConnectionStatus from '../components/BreathingMonitor/ConnectionStatus';
+import MeditationTimer from '../components/BreathingMonitor/MeditationTimer';
+import BiometricCards from '../components/BreathingMonitor/BiometricCards';
+import FaceStatus from '../components/BreathingMonitor/FaceStatus';
+import EndMeditationButton from '../components/BreathingMonitor/EndMeditationButton';
+import HiddenCamera from '../components/BreathingMonitor/HiddenCamera';
 
 interface BiometricData {
   heartRate: number;
@@ -15,71 +26,93 @@ interface BiometricData {
 const BreathingMonitor: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
   const logId = searchParams.get('logId');
 
   // 상태 관리
-  const [biometricData, setBiometricData] = useState<BiometricData>({
-    heartRate: 0,
-    lfHfRatio: 0,
-    isFaceDetected: false,
-  });
-  
-  const [meditationTime, setMeditationTime] = useState<number>(0); // 초 단위
-  const [isRunning, setIsRunning] = useState<boolean>(true);
-  const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
-  
-  // WebSocket & 타이머 참조
+  const [biometricData, setBiometricData] =
+    useState<BiometricData>({
+      heartRate: 0,
+      lfHfRatio: 0,
+      isFaceDetected: false,
+    });
+
+  const [meditationTime, setMeditationTime] =
+    useState<number>(0);
+
+  const [isRunning, setIsRunning] =
+    useState<boolean>(true);
+
+  const [isConnected, setIsConnected] =
+    useState<boolean>(false);
+
+  const [error, setError] =
+    useState<string | null>(null);
+
+  // 카메라 스트림
+  const [stream, setStream] =
+    useState<MediaStream | null>(null);
+
+  // refs
   const wsRef = useRef<WebSocket | null>(null);
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const timerRef =
+    useRef<ReturnType<typeof setInterval> | null>(null);
+
   const videoRef = useRef<HTMLVideoElement | null>(null);
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  // 1. 스트림을 담을 상태(State) 추가
-  const [stream, setStream] = useState<MediaStream | null>(null);
-
-// 2. 웹캠 초기화 및 정리 로직 통합
+  // 카메라 초기화
   useEffect(() => {
     const initCamera = async () => {
       try {
-        const mediaStream = await navigator.mediaDevices.getUserMedia({
-          video: {
-            width: { ideal: 640 },
-            height: { ideal: 480 },
-            facingMode: 'user'
-          },
-          audio: false,
-        });
+        const mediaStream =
+          await navigator.mediaDevices.getUserMedia({
+            video: {
+              width: { ideal: 640 },
+              height: { ideal: 480 },
+              facingMode: 'user',
+            },
+            audio: false,
+          });
 
-        setStream(mediaStream); // 자식(RecognitionArea) 전달용
+        setStream(mediaStream);
 
         if (videoRef.current) {
-          videoRef.current.srcObject = mediaStream; // 서버 전송 캡처용
+          videoRef.current.srcObject = mediaStream;
         }
-        console.log('Camera initialized and stream set');
+
+        console.log('Camera initialized');
       } catch (err) {
-        console.error('카메라 에러:', err);
+        console.error(err);
+
         setError('카메라 접근이 거부되었습니다.');
       }
     };
 
     initCamera();
 
-    // 🚨 [중요] 컴포넌트가 사라질 때(unmount) 카메라를 확실히 끕니다.
     return () => {
       console.log('Stopping camera tracks...');
+
       if (videoRef.current?.srcObject) {
-        const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
+        const tracks = (
+          videoRef.current.srcObject as MediaStream
+        ).getTracks();
+
         tracks.forEach((track) => track.stop());
       }
-      // 상태에 저장된 스트림도 안전하게 정지
+
       if (stream) {
-        stream.getTracks().forEach(track => track.stop());
+        stream.getTracks().forEach((track) =>
+          track.stop()
+        );
       }
     };
-  }, []); // 빈 배열이어야 처음에 딱 한 번만 실행됩니다!
+  }, []);
 
-  // 명상 시간 카운트
+  // 명상 타이머
   useEffect(() => {
     if (!isRunning) return;
 
@@ -88,87 +121,124 @@ const BreathingMonitor: React.FC = () => {
     }, 1000);
 
     return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
     };
   }, [isRunning]);
 
-// BreathingMonitor.tsx의 WebSocket useEffect 부분
-useEffect(() => {
-  // 🚨 [핵심 가드] 이미 연결 중이거나 logId가 없으면 아무것도 안 함
-  if (!logId || wsRef.current) return;
+  // WebSocket 연결
+  useEffect(() => {
+    if (!logId || wsRef.current) return;
 
-  console.log("WebSocket connecting with logId:", logId);
+    console.log(
+      'WebSocket connecting with logId:',
+      logId
+    );
 
-  const handleMessage = (data: RPPGStreamMessage) => {
-    // 서버에서 데이터가 오면 연결 상태 true로 변경
-    setIsConnected(true);
-    setBiometricData({
-      heartRate: Math.round(data.heartRate * 10) / 10,
-      lfHfRatio: Math.round(data.lfHfRatio * 100) / 100,
-      isFaceDetected: data.isFaceDetected,
-    });
+    const handleMessage = (
+      data: RPPGStreamMessage
+    ) => {
+      setBiometricData({
+        heartRate:
+          Math.round(data.heartRate * 10) / 10,
 
-  // 2. 데이터가 왔다면 연결 상태를 true로 (한 번만 실행되도록 가드 설정)
-    if (!isConnected) {
-      setIsConnected(true);
-    }
-  };
+        lfHfRatio:
+          Math.round(data.lfHfRatio * 100) / 100,
 
-  const handleError = (e: Event) => {
-    console.error('WebSocket error:', e);
-    // 에러 발생 시 상태 초기화
-    setIsConnected(false);
-  };
+        isFaceDetected:
+          data.isFaceDetected,
+      });
 
-  // 1. 소켓 연결
-  const ws = connectRPPGStream(parseInt(logId), handleMessage, handleError);
-  wsRef.current = ws;
+      if (!isConnected) {
+        setIsConnected(true);
+      }
+    };
 
-  const frameInterval = setInterval(() => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
+    const handleError = (e: Event) => {
+      console.error('WebSocket error:', e);
 
-    // 🚨 비디오가 실제로 재생 중인지 강제로 체크
-    if (video && (video.paused || video.ended)) {
-      video.play().catch(e => console.error("Play failed:", e));
-    }
+      setIsConnected(false);
+    };
 
-    if (video && canvas && video.readyState >= 2) {
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        // 비디오의 현재 시점 데이터를 강제로 캔버스에 복사
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const frameData = canvas.toDataURL('image/jpeg', 0.5);
+    // 연결
+    const ws = connectRPPGStream(
+      parseInt(logId),
+      handleMessage,
+      handleError
+    );
 
-        // 여기서 logId는 아까 생성한 진짜 번호를 넣어줘야 서버가 기록을 남깁니다!
-        if (wsRef.current) {
-          sendFrameToWebSocket(wsRef.current, frameData, Number(logId));
+    wsRef.current = ws;
+
+    // 프레임 전송
+    const frameInterval = setInterval(() => {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+
+      if (
+        video &&
+        (video.paused || video.ended)
+      ) {
+        video
+          .play()
+          .catch((e) =>
+            console.error('Play failed:', e)
+          );
+      }
+
+      if (
+        video &&
+        canvas &&
+        video.readyState >= 2
+      ) {
+        const ctx = canvas.getContext('2d');
+
+        if (ctx) {
+          ctx.drawImage(
+            video,
+            0,
+            0,
+            canvas.width,
+            canvas.height
+          );
+
+          const frameData =
+            canvas.toDataURL(
+              'image/jpeg',
+              0.5
+            );
+
+          if (wsRef.current) {
+            sendFrameToWebSocket(
+              wsRef.current,
+              frameData,
+              Number(logId)
+            );
+          }
         }
       }
-    }
-  }, 200);
+    }, 200);
 
-  return () => {
-    // 3. 페이지 나갈 때만 확실히 닫기
-    console.log("Cleaning up WebSocket...");
-    clearInterval(frameInterval);
-    if (wsRef.current) {
-      wsRef.current.close();
-      wsRef.current = null;
-    }
-    setIsConnected(false);
-  };
-}, [logId]); // 의존성 배열에 logId 하나만 두기
+    return () => {
+      console.log('Cleaning up WebSocket...');
 
-  // 명상 종료
+      clearInterval(frameInterval);
+
+      if (wsRef.current) {
+        wsRef.current.close();
+        wsRef.current = null;
+      }
+
+      setIsConnected(false);
+    };
+  }, [logId]);
+
+  // 종료
   const handleEndMeditation = () => {
     setIsRunning(false);
 
-    // WebSocket 종료
     if (wsRef.current) {
-      // 명상 시간(초)을 서버로 전송 (AI 서버가 WebSocket 종료 시 summary 저장)
       try {
-        // 종료 직전, 서버로 명상 시간 전송
         wsRef.current.send(
           JSON.stringify({
             type: 'END',
@@ -176,129 +246,114 @@ useEffect(() => {
           })
         );
       } catch (e) {
-        console.warn('명상 시간 전송 실패:', e);
+        console.warn(
+          '명상 시간 전송 실패:',
+          e
+        );
       }
+
       wsRef.current.close();
     }
 
-    // 타이머 종료
     if (timerRef.current) {
       clearInterval(timerRef.current);
     }
 
-    // 명상 시간 localStorage 저장
-    localStorage.setItem('lastMeditationTime', meditationTime.toString());
+    localStorage.setItem(
+      'lastMeditationTime',
+      meditationTime.toString()
+    );
 
-    // logId와 함께 피드백 페이지로 이동
     setTimeout(() => {
-      navigate(`/meditation-feedback?logId=${logId}`);
+      navigate(
+        `/meditation-feedback?logId=${logId}`
+      );
     }, 2000);
   };
 
-  // 시간 포맷팅 (MM:SS)
-  const formatTime = (seconds: number): string => {
+  // 시간 포맷
+  const formatTime = (
+    seconds: number
+  ): string => {
     const mins = Math.floor(seconds / 60);
+
     const secs = seconds % 60;
-    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+    return `${mins
+      .toString()
+      .padStart(2, '0')}:${secs
+      .toString()
+      .padStart(2, '0')}`;
   };
 
   return (
     <div className="min-h-screen bg-[#F8FAF8] dark:bg-zinc-950 flex flex-col">
-      <Header 
-        title="호흡 모니터링" 
+      <Header
+        title="호흡 모니터링"
         onBack={() => {
-          if (wsRef.current) wsRef.current.close();
+          if (wsRef.current) {
+            wsRef.current.close();
+          }
+
           navigate(-1);
-        }} 
+        }}
       />
 
       <main className="flex-1 flex flex-col justify-center px-6 pb-10 max-w-2xl mx-auto w-full">
-        {/* 숨겨진 비디오 & Canvas (프레임 캡처용) */}
-        <video
-          ref={videoRef}
-          autoPlay
-          playsInline
-          muted
-          className="hidden"
-          width="640"
-          height="480"
-        />
-        <canvas
-          ref={canvasRef}
-          className="hidden"
-          width="640"
-          height="480"
+
+        {/* 숨겨진 카메라 */}
+        <HiddenCamera
+          videoRef={videoRef}
+          canvasRef={canvasRef}
         />
 
-        {/* 연결 상태 표시 */}
-        <div className="mb-4 flex items-center gap-2 justify-center">
-          <div
-            className={`w-3 h-3 rounded-full ${
-              isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'
-            }`}
-          ></div>
-          <span className="text-sm text-[#45947D] font-medium">
-            {isConnected ? 'WebSocket 연결됨' : 'WebSocket 연결 중...'}
-          </span>
-        </div>
+        {/* 연결 상태 */}
+        <ConnectionStatus
+          isConnected={isConnected}
+        />
 
-        {/* 에러 메시지 */}
+        {/* 에러 */}
         {error && (
           <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
             {error}
           </div>
         )}
 
-        {/* 명상 시간 표시 */}
-        <div className="text-center mb-8">
-          <p className="text-gray-500 text-sm mb-2">명상 시간</p>
-          <p className="text-5xl font-bold text-[#1A4D43]">{formatTime(meditationTime)}</p>
-        </div>
+        {/* 타이머 */}
+        <MeditationTimer
+          time={formatTime(meditationTime)}
+        />
 
-        {/* 얼굴 감지 영역 */}
-        <RecognitionArea videoStream={stream} />
+        {/* 얼굴 인식 */}
+        <RecognitionArea
+          videoStream={stream}
+        />
 
-        {/* 생체 지표 카드 */}
-        <section className="grid grid-cols-2 gap-4 mb-8">
-          <DataCard 
-            label="심박수" 
-            value={biometricData.heartRate || '-'} 
-            unit="bpm" 
-          />
-          <DataCard 
-            label="LF/HF" 
-            value={biometricData.lfHfRatio || '-'} 
-            unit="ratio" 
-          />
-        </section>
+        {/* 생체 데이터 */}
+        <BiometricCards
+          heartRate={
+            biometricData.heartRate
+          }
+          lfHfRatio={
+            biometricData.lfHfRatio
+          }
+        />
 
         {/* 얼굴 감지 상태 */}
-        <div className="text-center mb-6 p-3 bg-white dark:bg-zinc-900 rounded-lg border border-slate-100 dark:border-zinc-800">
-          <span
-            className={`text-sm font-bold ${
-              biometricData.isFaceDetected ? 'text-green-600' : 'text-red-600'
-            }`}
-          >
-            {biometricData.isFaceDetected ? '✓ 얼굴 감지됨' : '✗ 얼굴 감지 안 됨'}
-          </span>
-        </div>
+        <FaceStatus
+          isFaceDetected={
+            biometricData.isFaceDetected
+          }
+        />
 
         {/* 종료 버튼 */}
-        <button
+        <EndMeditationButton
+          isRunning={isRunning}
           onClick={handleEndMeditation}
-          disabled={!isRunning}
-          className={`w-full py-4 px-4 rounded-2xl font-bold text-lg transition-all ${
-            isRunning
-              ? 'bg-red-500 text-white hover:bg-red-600 active:scale-95'
-              : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-          }`}
-        >
-          명상 종료
-        </button>
+        />
       </main>
     </div>
   );
 };
 
 export default BreathingMonitor;
-

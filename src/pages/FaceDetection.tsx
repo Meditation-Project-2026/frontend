@@ -8,8 +8,12 @@ import { startMeditation } from '../api/meditation';
 const FaceDetection: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+
+  // URL에서 meditation ID 받기
   const meditationId = searchParams.get('id'); // URL에서 meditation ID 받기
+  const type = searchParams.get('type'); // 명상 시작인지 호흡 모니터링인지 구분 (선택 사항)
   
+  // 상태 관리
   const [progress, setProgress] = useState<number>(0);
   const [isDetected, setIsDetected] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -56,15 +60,21 @@ const FaceDetection: React.FC = () => {
     setError(null);
 
     try {
+      // 명상 세션 시작 api 호출
       const result = await startMeditation(parseInt(meditationId));
+      
       console.log('Meditation started:', result);
 
-      // logId를 저장하고 BreathingMonitor 페이지로 이동
+      // localStorage 저장
       localStorage.setItem('logId', result.logId.toString());
       localStorage.setItem('startedAt', result.startedAt);
 
-      // BreathingMonitor 페이지로 이동 (logId 전달)
-      navigate(`/breathing-monitor?logId=${result.logId}`);
+      // type에 따라 이동 페이지 결정
+      if (type === 'breathing') {
+        navigate(`/breathing-guide?logId=${result.logId}`);
+      } else {
+        navigate(`/breathing-monitor?logId=${result.logId}`);
+      }
     } catch (err) {
       console.error('Failed to start meditation:', err);
       setError('명상 시작에 실패했습니다. 다시 시도해주세요.');
