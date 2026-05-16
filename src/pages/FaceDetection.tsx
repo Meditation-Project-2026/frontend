@@ -72,6 +72,10 @@ const FaceDetection: React.FC = () => {
       // type에 따라 이동 페이지 결정
       if (type === 'breathing') {
         navigate(`/breathing-guide?logId=${result.logId}`);
+      } else if (type === 'full') {
+        navigate(`/breathing-full?logId=${result.logId}`);
+      } else if (type === 'content')  {
+        navigate(`/breathing-content?logId=${result.logId}`);
       } else {
         navigate(`/breathing-monitor?logId=${result.logId}`);
       }

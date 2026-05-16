@@ -11,6 +11,7 @@ import {
 import Header from '../components/BreathingGuide/Header';
 import BreathingCircle from '../components/BreathingGuide/BreathingCircle';
 import StatusCards from '../components/BreathingGuide/StatusCards';
+import SessionPlayer from '../components/BreathingGuide/SessionPlayer';
 import CameraFrame from '../components/BreathingGuide/CameraFrame';
 
 interface BiometricData {
@@ -19,7 +20,7 @@ interface BiometricData {
   isFaceDetected: boolean;
 }
 
-const BreathingGuide: React.FC = () => {
+const BreathingFull: React.FC = () => {
 
   const [searchParams] = useSearchParams();
 
@@ -255,9 +256,13 @@ const BreathingGuide: React.FC = () => {
         />
 
       </main>
+
+      
+
+      <SessionPlayer />
       
     </div>
   );
 };
 
-export default BreathingGuide;
+export default BreathingFull;

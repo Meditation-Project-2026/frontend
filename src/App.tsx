@@ -5,6 +5,7 @@ import BreathingMonitor from './pages/BreathingMonitor';
 import MeditationFeedback from './pages/MeditationFeedback';
 import Home from './pages/Home';
 import BreathingGuide from './pages/BreathingGuide';
+import BreathingFull from './pages/BreathingFull';
 
 function App() {
   return (
@@ -21,6 +22,9 @@ function App() {
 
               {/* 호흡 가이드 화면 */}
               <Route path="/breathing-guide" element={<BreathingGuide />} />
+
+              {/* 통합 모드 화면 */}
+              <Route path="/breathing-full" element={<BreathingFull />} />  
 
               {/* 피드백 화면 */}
               <Route path="/meditation-feedback" element={<MeditationFeedback />} />
