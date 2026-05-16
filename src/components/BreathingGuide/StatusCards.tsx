@@ -5,75 +5,108 @@ interface StatusCardsProps {
   lfHfRatio: number;
 }
 
-const StatusCards: React.FC<StatusCardsProps> = ({ heartRate, lfHfRatio  }) => {
+const StatusCards: React.FC<StatusCardsProps> = ({
+  heartRate,
+  lfHfRatio,
+}) => {
   return (
-    <div className="grid grid-cols-2 gap-3 mt-4 shrink-0">
+    <div className="grid grid-cols-2 gap-4 mb-8 shrink-0">
 
       {/* 심박수 */}
       <div
         className="
           bg-white
-          dark:bg-[#1E293B]
-          p-4
-          rounded-3xl
+          dark:bg-zinc-900
+          p-6
+          rounded-[32px]
           shadow-sm
           border
           border-slate-100
-          dark:border-slate-800
+          dark:border-zinc-800
         "
       >
-        <div className="flex items-center space-x-2 mb-1">
+        <div className="flex items-center gap-2 mb-4">
           <Heart
-            size={16}
-            className="text-red-500"
+            size={18}
+            className="text-[#45947D]"
           />
 
-          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-            심박수 (HR)
+          <span
+            className="
+              text-xs
+              font-bold
+              text-[#45947D]
+              uppercase
+              tracking-tight
+            "
+          >
+            심박수
           </span>
         </div>
 
-        <div className="flex items-baseline space-x-1">
-          <span className="text-2xl font-bold">
+        <div className="flex items-baseline gap-1">
+          <span
+            className="
+              text-4xl
+              font-bold
+              text-[#1A4D43]
+              dark:text-slate-100
+            "
+          >
             {heartRate || '-'}
           </span>
 
-          <span className="text-xs font-medium text-slate-400">
+          <span className="text-sm font-medium text-slate-400">
             bpm
           </span>
         </div>
       </div>
 
-      {/* HRV */}
+      {/* LF/HF */}
       <div
         className="
           bg-white
-          dark:bg-[#1E293B]
-          p-4
-          rounded-3xl
+          dark:bg-zinc-900
+          p-6
+          rounded-[32px]
           shadow-sm
           border
           border-slate-100
-          dark:border-slate-800
+          dark:border-zinc-800
         "
       >
-        <div className="flex items-center space-x-2 mb-1">
+        <div className="flex items-center gap-2 mb-4">
           <Waves
-            size={16}
-            className="text-blue-500"
+            size={18}
+            className="text-[#45947D]"
           />
 
-          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+          <span
+            className="
+              text-xs
+              font-bold
+              text-[#45947D]
+              uppercase
+              tracking-tight
+            "
+          >
             LF/HF
           </span>
         </div>
 
-        <div className="flex items-baseline space-x-1">
-          <span className="text-2xl font-bold">
+        <div className="flex items-baseline gap-1">
+          <span
+            className="
+              text-4xl
+              font-bold
+              text-[#1A4D43]
+              dark:text-slate-100
+            "
+          >
             {lfHfRatio || '-'}
           </span>
 
-          <span className="text-xs font-medium text-slate-400">
+          <span className="text-sm font-medium text-slate-400">
             ratio
           </span>
         </div>

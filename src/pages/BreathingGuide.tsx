@@ -11,7 +11,6 @@ import {
 import Header from '../components/BreathingGuide/Header';
 import BreathingCircle from '../components/BreathingGuide/BreathingCircle';
 import StatusCards from '../components/BreathingGuide/StatusCards';
-import PPGChart from '../components/BreathingGuide/PPGChart';
 import SessionPlayer from '../components/BreathingGuide/SessionPlayer';
 import CameraFrame from '../components/BreathingGuide/CameraFrame';
 
@@ -255,9 +254,6 @@ const BreathingGuide: React.FC = () => {
           heartRate={biometricData.heartRate}
           lfHfRatio={biometricData.lfHfRatio}
         />
-
-        {/* PPG 그래프 */}
-        <PPGChart />
 
       </main>
 
