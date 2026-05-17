@@ -16,6 +16,7 @@ const BreathingMonitor: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const logId = searchParams.get('logId');
+  const frameIntervalMs = 1000 / 30;
 
   // 상태 관리
   const [biometricData, setBiometricData] = useState<BiometricData>({
@@ -124,32 +125,65 @@ useEffect(() => {
   const ws = connectRPPGStream(parseInt(logId), handleMessage, handleError);
   wsRef.current = ws;
 
-  const frameInterval = setInterval(() => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
+  // 재귀적 setTimeout을 위한 플래그와 타이머 참조
+  let isRunningLocal = true;
+  let frameTimer: ReturnType<typeof setTimeout> | null = null;
 
-    // 🚨 비디오가 실제로 재생 중인지 강제로 체크
-    if (video && (video.paused || video.ended)) {
-      video.play().catch(e => console.error("Play failed:", e));
+  // WebSocket이 닫힐 때 프레임 전송을 멈추도록 핸들러 추가
+  ws.onclose = () => {
+    isRunningLocal = false;
+    if (frameTimer) {
+      clearTimeout(frameTimer);
+      frameTimer = null;
     }
+    setIsConnected(false);
+    wsRef.current = null;
+    console.log('WebSocket closed, stopped frame timer.');
+  };
 
-    if (video && canvas && video.readyState >= 2) {
-      const ctx = canvas.getContext('2d');
-      if (ctx) {
-        // 비디오의 현재 시점 데이터를 강제로 캔버스에 복사
-        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const frameData = canvas.toDataURL('image/jpeg', 0.5);
+  const captureAndSend = async () => {
+    try {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
 
-        // 여기서 logId는 아까 생성한 진짜 번호를 넣어줘야 서버가 기록을 남깁니다!
-        sendFrameToWebSocket(wsRef.current, frameData, Number(logId));
+      if (video && canvas && video.readyState >= 2) {
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const frameData = canvas.toDataURL('image/jpeg', 0.4);
+
+          // 전송 전에 WebSocket 상태 검사: OPEN일 때만 전송
+          if (ws.readyState === WebSocket.OPEN) {
+            try {
+              sendFrameToWebSocket(ws, frameData);
+            } catch (e) {
+              // 전송 중 소켓이 닫히거나 오류가 발생해도 워커가 멈추지 않도록 무시
+              console.warn('sendFrameToWebSocket failed:', e);
+            }
+          }
+        }
+      }
+    } catch (err) {
+      console.error('captureAndSend error:', err);
+    } finally {
+      if (isRunningLocal) {
+        frameTimer = setTimeout(captureAndSend, frameIntervalMs);
       }
     }
-  }, 200);
+  };
+
+  // 최초 호출
+  frameTimer = setTimeout(captureAndSend, frameIntervalMs);
 
   return () => {
     // 3. 페이지 나갈 때만 확실히 닫기
     console.log("Cleaning up WebSocket...");
-    clearInterval(frameInterval);
+    // 전송 루프 중지
+    isRunningLocal = false;
+    if (frameTimer) {
+      clearTimeout(frameTimer);
+      frameTimer = null;
+    }
     if (wsRef.current) {
       wsRef.current.close();
       wsRef.current = null;
@@ -159,24 +193,26 @@ useEffect(() => {
 }, [logId]); // 의존성 배열에 logId 하나만 두기
 
   // 명상 종료
-  const handleEndMeditation = () => {
+  const handleEndMeditation = async () => {
     setIsRunning(false);
 
     // WebSocket 종료
     if (wsRef.current) {
-      // 명상 시간(초)을 서버로 전송 (AI 서버가 WebSocket 종료 시 summary 저장)
+      // 종료 직전에 AI 서버가 summary를 마무리할 수 있도록 종료 메시지를 먼저 보냅니다.
       try {
-        // 종료 직전, 서버로 명상 시간 전송
         wsRef.current.send(
           JSON.stringify({
             type: 'END',
             totalDuration: meditationTime,
           })
         );
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
       } catch (e) {
         console.warn('명상 시간 전송 실패:', e);
       }
       wsRef.current.close();
+      wsRef.current = null;
     }
 
     // 타이머 종료
@@ -224,8 +260,8 @@ useEffect(() => {
         <canvas
           ref={canvasRef}
           className="hidden"
-          width="640"
-          height="480"
+          width="72"
+          height="72"
         />
 
         {/* 연결 상태 표시 */}
@@ -260,12 +296,12 @@ useEffect(() => {
         <section className="grid grid-cols-2 gap-4 mb-8">
           <DataCard 
             label="심박수" 
-            value={biometricData.heartRate || '-'} 
+            value={biometricData.heartRate > 0 ? biometricData.heartRate : '-'} 
             unit="bpm" 
           />
           <DataCard 
             label="LF/HF" 
-            value={biometricData.lfHfRatio || '-'} 
+            value={biometricData.lfHfRatio > 0 ? biometricData.lfHfRatio : '-'}
             unit="ratio" 
           />
         </section>
