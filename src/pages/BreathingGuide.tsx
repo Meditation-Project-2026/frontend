@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 import type { RPPGStreamMessage } from '../api/meditation';
 
@@ -12,6 +12,7 @@ import Header from '../components/BreathingGuide/Header';
 import BreathingCircle from '../components/BreathingGuide/BreathingCircle';
 import StatusCards from '../components/BreathingGuide/StatusCards';
 import CameraFrame from '../components/BreathingGuide/CameraFrame';
+import MeditationTimer from '../components/BreathingMonitor/MeditationTimer';
 
 interface BiometricData {
   heartRate: number;
@@ -20,12 +21,12 @@ interface BiometricData {
 }
 
 const BreathingGuide: React.FC = () => {
-
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const logId = searchParams.get('logId');
 
-  // 상태
+  // 상태 관리
   const [biometricData, setBiometricData] =
     useState<BiometricData>({
       heartRate: 0,
@@ -33,20 +34,31 @@ const BreathingGuide: React.FC = () => {
       isFaceDetected: false,
     });
 
+  const [meditationTime, setMeditationTime] =
+    useState<number>(0);
+
+  const [isRunning, setIsRunning] =
+    useState<boolean>(true);
+
   const [isConnected, setIsConnected] =
-    useState(false);
+    useState<boolean>(false);
 
   const [error, setError] =
     useState<string | null>(null);
 
+  // 카메라 스트림
+  const [stream, setStream] =
+    useState<MediaStream | null>(null);
+
   // refs
   const wsRef = useRef<WebSocket | null>(null);
 
-  const videoRef =
-    useRef<HTMLVideoElement | null>(null);
+  const timerRef =
+    useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const canvasRef =
-    useRef<HTMLCanvasElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
   // 카메라 초기화
   useEffect(() => {
@@ -62,38 +74,64 @@ const BreathingGuide: React.FC = () => {
             audio: false,
           });
 
+        setStream(mediaStream);
+
         if (videoRef.current) {
-          videoRef.current.srcObject =
-            mediaStream;
+          videoRef.current.srcObject = mediaStream;
         }
+
+        console.log('Camera initialized');
       } catch (err) {
         console.error(err);
 
-        setError(
-          '카메라 접근이 거부되었습니다.'
-        );
+        setError('카메라 접근이 거부되었습니다.');
       }
     };
 
     initCamera();
 
     return () => {
+      console.log('Stopping camera tracks...');
+
       if (videoRef.current?.srcObject) {
         const tracks = (
-          videoRef.current
-            .srcObject as MediaStream
+          videoRef.current.srcObject as MediaStream
         ).getTracks();
 
-        tracks.forEach((track) =>
+        tracks.forEach((track) => track.stop());
+      }
+
+      if (stream) {
+        stream.getTracks().forEach((track) =>
           track.stop()
         );
       }
     };
   }, []);
 
+  // 명상 타이머
+  useEffect(() => {
+    if (!isRunning) return;
+
+    timerRef.current = setInterval(() => {
+      setMeditationTime((prev) => prev + 1);
+    }, 1000);
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [isRunning]);
+
   // WebSocket 연결
   useEffect(() => {
     if (!logId || wsRef.current) return;
+
+    console.log(
+      'WebSocket connecting with logId:',
+      logId
+    );
 
     const handleMessage = (
       data: RPPGStreamMessage
@@ -109,15 +147,18 @@ const BreathingGuide: React.FC = () => {
           data.isFaceDetected,
       });
 
-      setIsConnected(true);
+      if (!isConnected) {
+        setIsConnected(true);
+      }
     };
 
     const handleError = (e: Event) => {
-      console.error(e);
+      console.error('WebSocket error:', e);
 
       setIsConnected(false);
     };
 
+    // 연결
     const ws = connectRPPGStream(
       parseInt(logId),
       handleMessage,
@@ -126,10 +167,21 @@ const BreathingGuide: React.FC = () => {
 
     wsRef.current = ws;
 
+    // 프레임 전송
     const frameInterval = setInterval(() => {
       const video = videoRef.current;
-
       const canvas = canvasRef.current;
+
+      if (
+        video &&
+        (video.paused || video.ended)
+      ) {
+        video
+          .play()
+          .catch((e) =>
+            console.error('Play failed:', e)
+          );
+      }
 
       if (
         video &&
@@ -165,17 +217,71 @@ const BreathingGuide: React.FC = () => {
     }, 200);
 
     return () => {
+      console.log('Cleaning up WebSocket...');
+
       clearInterval(frameInterval);
 
       if (wsRef.current) {
         wsRef.current.close();
-
         wsRef.current = null;
       }
 
       setIsConnected(false);
     };
   }, [logId]);
+
+  // 종료
+  const handleEndMeditation = () => {
+    setIsRunning(false);
+
+    if (wsRef.current) {
+      try {
+        wsRef.current.send(
+          JSON.stringify({
+            type: 'END',
+            totalDuration: meditationTime,
+          })
+        );
+      } catch (e) {
+        console.warn(
+          '명상 시간 전송 실패:',
+          e
+        );
+      }
+
+      wsRef.current.close();
+    }
+
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+    }
+
+    localStorage.setItem(
+      'lastMeditationTime',
+      meditationTime.toString()
+    );
+
+    setTimeout(() => {
+      navigate(
+        `/meditation-feedback?logId=${logId}`
+      );
+    }, 2000);
+  };
+
+  // 시간 포맷
+  const formatTime = (
+    seconds: number
+  ): string => {
+    const mins = Math.floor(seconds / 60);
+
+    const secs = seconds % 60;
+
+    return `${mins
+      .toString()
+      .padStart(2, '0')}:${secs
+      .toString()
+      .padStart(2, '0')}`;
+  };
 
   return (
     <div className="min-h-screen bg-[#F6F8FA] dark:bg-[#0F172A] flex flex-col relative">
@@ -222,7 +328,7 @@ const BreathingGuide: React.FC = () => {
       <main className="overflow-y-auto px-6 pb-20">
 
         {/* 연결 상태 */}
-        <div className="mb-4 flex items-center gap-2 justify-center">
+        <div className="m-6 flex items-center gap-2 justify-center">
           <div
             className={`w-3 h-3 rounded-full ${
               isConnected
@@ -245,6 +351,15 @@ const BreathingGuide: React.FC = () => {
           </div>
         )}
 
+        {/* 명상 타이머 */}
+        <div className="text-center mb-4">
+          <h2 className="text-4xl font-bold text-[#1A4D43]">
+            <MeditationTimer
+                  time={formatTime(meditationTime)}
+                />
+          </h2>
+        </div>
+
         {/* 호흡 원 */}
         <BreathingCircle />
 
@@ -253,6 +368,13 @@ const BreathingGuide: React.FC = () => {
           heartRate={biometricData.heartRate}
           lfHfRatio={biometricData.lfHfRatio}
         />
+
+        <button
+          onClick={handleEndMeditation}
+          className="w-full py-4 rounded-2xl bg-[#6BE6C1] text-[#0F172A] font-bold text-lg"
+        >
+          명상 종료하기
+        </button>
 
       </main>
       
