@@ -1,4 +1,4 @@
-import React from 'react';
+'react';
 
 interface ProgressCircleProps {
   percentage: number;

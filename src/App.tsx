@@ -1,8 +1,11 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { LogIdProvider } from './contexts/LogIdContext';
 import FaceDetection from './pages/FaceDetection';
 import BreathingMonitor from './pages/BreathingMonitor';
 import MeditationFeedback from './pages/MeditationFeedback';
+import Home from './pages/Home';
+import BreathingGuide from './pages/BreathingGuide';
+import BreathingFull from './pages/BreathingFull';
 
 function App() {
   return (
@@ -17,11 +20,17 @@ function App() {
               {/* 호흡 모니터링 화면 */}
               <Route path="/breathing-monitor" element={<BreathingMonitor />} />
 
+              {/* 호흡 가이드 화면 */}
+              <Route path="/breathing-guide" element={<BreathingGuide />} />
+
+              {/* 통합 모드 화면 */}
+              <Route path="/breathing-full" element={<BreathingFull />} />  
+
               {/* 피드백 화면 */}
               <Route path="/meditation-feedback" element={<MeditationFeedback />} />
 
               {/* 기본 리다이렉트 */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="/" element={<Home />} />
             </Routes>
           </div>
         </div>
