@@ -52,7 +52,7 @@ const Home: React.FC = () => {
       <SearchBar />
 
       {/* 메인 콘텐츠 */}
-      <main className="flex-1 space-y-9 overflow-y-auto hide-scrollbar pb-10">
+      <main className="flex-1 space-y-6 overflow-y-auto hide-scrollbar pb-10">
         {/* 최근에 들은 명상 */}
         <RecentMeditations
           onViewAll={() => navigate('/contents')}

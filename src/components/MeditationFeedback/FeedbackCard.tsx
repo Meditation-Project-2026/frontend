@@ -32,8 +32,8 @@ export const FeedbackCard = ({ title, value, unit, change, start, end }: CardPro
         <span className={`ml-2 text-sm font-bold ${color}`}>{arrow} {change}</span>
       </div>
       <div className="space-y-5">
-        {[ { label: "시작", data: start, color: "bg-[#9FB6B0]" },
-           { label: "종료", data: end, color: "bg-[#45947D]" }
+        {[ { label: "초반", data: start, color: "bg-[#9FB6B0]" },
+           { label: "후반", data: end, color: "bg-[#45947D]" }
         ].map((item, idx) => (
           <div key={idx} className="flex items-center gap-4">
             <span className="text-xs text-gray-300 w-8">{item.label}</span>
