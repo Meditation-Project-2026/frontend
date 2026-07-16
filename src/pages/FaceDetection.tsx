@@ -1,25 +1,75 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import CameraFrame from "../components/FaceDetection/CameraFrame";
-import Header from "../components/Header";
-import ProgressCircle from "../components/FaceDetection/ProgressCircle";
+
+import CameraFrame from '../components/FaceDetection/CameraFrame';
+import Header from '../components/Header';
+import ProgressCircle from '../components/FaceDetection/ProgressCircle';
 import { startMeditation } from '../api/meditation';
 
 const FaceDetection: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
-  // URL에서 meditation ID 받기
-  const meditationId = searchParams.get('id'); // URL에서 meditation ID 받기
-  const type = searchParams.get('type'); // 명상 시작인지 호흡 모니터링인지 구분 (선택 사항)
-  
-  // 상태 관리
+  const meditationId = searchParams.get('id');
+  const type = searchParams.get('type');
+
   const [progress, setProgress] = useState<number>(0);
   const [isDetected, setIsDetected] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [stream, setStream] = useState<MediaStream | null>(null);
 
-  // 얼굴 인식 진행도 시뮬레이션
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const initCamera = async () => {
+      try {
+        const mediaStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: 'user',
+          },
+          audio: false,
+        });
+
+        if (!mounted) {
+          mediaStream.getTracks().forEach((track) => track.stop());
+          return;
+        }
+
+        streamRef.current = mediaStream;
+        setStream(mediaStream);
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = mediaStream;
+        }
+      } catch (err) {
+        console.error(err);
+        setError('카메라를 시작하지 못했습니다.');
+      }
+    };
+
+    initCamera();
+
+    return () => {
+      mounted = false;
+
+      if (videoRef.current) {
+        videoRef.current.pause();
+        videoRef.current.srcObject = null;
+      }
+
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, []);
+
   useEffect(() => {
     if (progress >= 100) {
       setIsDetected(true);
@@ -28,31 +78,27 @@ const FaceDetection: React.FC = () => {
 
     const interval = setInterval(() => {
       setProgress((prev) => {
-        const newProgress = prev + 2;
-        return newProgress > 100 ? 100 : newProgress;
+        const next = prev + 2;
+        return next > 100 ? 100 : next;
       });
     }, 50);
 
     return () => clearInterval(interval);
   }, [progress]);
 
-  // 뒤로가기
   const handleBack = () => {
     navigate(-1);
   };
 
-  // 취소
   const handleCancel = () => {
     setProgress(0);
     setIsDetected(false);
     setError(null);
   };
 
-  // 얼굴 인식 완료 후 명상 시작
   const handleStartMeditation = async () => {
-    console.log("버튼 클릭됨!"); // 클릭 확인 로그
     if (!meditationId) {
-      setError('명상 ID가 전달되지 않았습니다.');
+      setError('명상 ID가 없습니다.');
       return;
     }
 
@@ -60,21 +106,16 @@ const FaceDetection: React.FC = () => {
     setError(null);
 
     try {
-      // 명상 세션 시작 api 호출
       const result = await startMeditation(parseInt(meditationId));
-      
-      console.log('Meditation started:', result);
 
-      // localStorage 저장
       localStorage.setItem('logId', result.logId.toString());
       localStorage.setItem('startedAt', result.startedAt);
 
-      // type에 따라 이동 페이지 결정
       if (type === 'breathing') {
         navigate(`/breathing-guide?logId=${result.logId}`);
       } else if (type === 'full') {
         navigate(`/breathing-full?logId=${result.logId}`);
-      } else if (type === 'content')  {
+      } else if (type === 'content') {
         navigate(`/breathing-content?logId=${result.logId}`);
       } else {
         navigate(`/breathing-monitor?logId=${result.logId}`);
@@ -88,30 +129,38 @@ const FaceDetection: React.FC = () => {
 
   return (
     <div className="flex-1 flex flex-col items-center w-full max-w-md mx-auto">
-      <Header title="Face Detection" onBack={handleBack} rightType="text" rightText="Cancel" onRightClick={handleCancel} />
-      
+      <Header
+        title="Face Detection"
+        onBack={handleBack}
+        rightType="text"
+        rightText="Cancel"
+        onRightClick={handleCancel}
+      />
+
       <main className="flex-1 flex flex-col items-center px-6 w-full relative z-10">
         <div className="w-full text-center mt-2 mb-6">
           <h2 className="text-xl md:text-2xl font-bold text-[#0F172A] dark:text-white leading-tight mb-2">
-            명상 전, 카메라를 응시하고<br/>얼굴을 프레임 안에 맞춰주세요.
+            명상 전에 카메라를 확인하고
+            <br />
+            얼굴이 프레임 안에 들어오게 맞춰주세요
           </h2>
           <p className="text-sm text-[#6B7280]">
-            정확한 측정을 위해 움직임을 최소화해주세요.
+            정확한 측정을 위해 정면을 바라보고 움직임을 최소화해주세요.
           </p>
         </div>
 
-        <CameraFrame />
+        <div className="w-full aspect-[3.5/4.5] mb-8 rounded-[2rem] overflow-hidden">
+          <CameraFrame stream={stream} />
+        </div>
+
         <ProgressCircle percentage={Math.round(progress)} />
 
-
-        {/* 에러 메시지 */}
         {error && (
           <div className="w-full mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
             {error}
           </div>
         )}
 
-        {/* 얼굴 감지 완료 후 버튼 표시 */}
         {isDetected && (
           <div className="w-full mt-8 space-y-3">
             <button

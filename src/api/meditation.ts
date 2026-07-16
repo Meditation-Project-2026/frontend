@@ -82,9 +82,7 @@ export const sendFrameToWebSocket = (ws: WebSocket, frameData: string | Blob | B
   try {
     // frameData가 dataURL(base64)일 때만 처리
     if (typeof frameData === 'string') {
-      // logId를 ws 객체에서 추출하거나, 필요시 파라미터로 넘길 수 있음
-      // 여기서는 0으로 고정 (AI 서버가 frame만 사용)
-      ws.send(JSON.stringify({ logId, frame: frameData }));
+      ws.send(JSON.stringify({ frame: frameData }));
     } else {
       console.warn('frameData is not a base64 string');
     }

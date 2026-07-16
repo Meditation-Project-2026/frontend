@@ -26,16 +26,23 @@ export default function FeedbackPage() {
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // 📊 피드백 데이터 로드
+  // 📊 피드백 데이터 로드 및 폴링 로직 구현
   useEffect(() => {
     if (!logId) return;
+
+    let timerId: NodeJS.Timeout;
+
     const loadFeedback = async () => {
-      setFeedback({ data: null, loading: true, error: null });
       try {
-        // 실제 서버에서 데이터 받아오기
         const data = await getMeditationFeedback(parseInt(logId));
-        setFeedback({ data, loading: false, error: null });
-        setUserNote(data.userNote || '');
+
+        if (data.resultStatus !== 'SUCCESS' && data.resultStatus !== 'FAILURE') {
+          setFeedback({ data: null, loading: true, error: null });
+          timerId = setTimeout(loadFeedback, 1500);
+        } else {
+          setFeedback({ data, loading: false, error: null });
+          setUserNote(data.userNote || '');
+        }
       } catch (err) {
         console.error('Failed to load feedback:', err);
         setFeedback({
@@ -47,9 +54,13 @@ export default function FeedbackPage() {
     };
 
     loadFeedback();
+
+    return () => {
+      if (timerId) clearTimeout(timerId);
+    };
   }, [logId]);
 
-  // 💾 사용자 노트 저장
+  // 💾 사용자 노트 저장 및 홈 이동 로직
   const handleSaveNote = async () => {
     if (!logId) return;
 
@@ -69,14 +80,14 @@ export default function FeedbackPage() {
 
       setTimeout(() => {
         setSaveMessage(null);
-      }, 2000);
+        navigate('/');
+      }, 1500);
     } catch (err) {
       console.error('Failed to save note:', err);
       setSaveMessage({
         type: 'error',
         text: '메모 저장에 실패했습니다.',
       });
-    } finally {
       setIsSaving(false);
     }
   };
@@ -96,21 +107,24 @@ export default function FeedbackPage() {
     return `${min}분 ${s}초`;
   };
 
-  // 서버에서 받은 시간 대신 localStorage 값 우선 사용
   let totalDuration = feedback.data?.totalDuration;
   const lastMeditationTime = localStorage.getItem('lastMeditationTime');
   if (lastMeditationTime && !isNaN(Number(lastMeditationTime))) {
     totalDuration = String(Number(lastMeditationTime));
   }
 
-  // 로딩 중
+  // 로딩 중 (디자인 수정 버전)
   if (feedback.loading) {
     return (
-      <div className="min-h-screen bg-[#F8FBFF] text-[#2D3142] flex items-center justify-center pb-10">
+      <div className="min-h-screen bg-[#F8FBFF] text-[#2D3142] flex flex-col">
         <Header title="명상 피드백" onBack={() => navigate(-1)} />
-        <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#45947D]"></div>
-          <p className="mt-4 text-[#64748B]">피드백 데이터를 불러오는 중...</p>
+        <div className="flex-1 flex flex-col items-center justify-center pb-20">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#45947D]"></div>
+            <p className="mt-4 text-[#64748B] font-medium animate-pulse">
+              피드백 데이터를 불러오는 중...
+            </p>
+          </div>
         </div>
       </div>
     );
@@ -139,7 +153,6 @@ export default function FeedbackPage() {
   const { data } = feedback;
   const isSuccess = data.resultStatus === 'SUCCESS';
 
-  // 값 포맷팅
   const lfhfStart = data.lfhf.start !== null && data.lfhf.start !== undefined ? Number(data.lfhf.start.toFixed(2)) : 0;
   const lfhfEnd = data.lfhf.end !== null && data.lfhf.end !== undefined ? Number(data.lfhf.end.toFixed(2)) : 0;
   const lfhfChange = data.lfhf.changeRate !== null && data.lfhf.changeRate !== undefined ? Number(data.lfhf.changeRate.toFixed(1)) : 0;
@@ -147,7 +160,6 @@ export default function FeedbackPage() {
   const hrEnd = data.heartRate.end !== null && data.heartRate.end !== undefined ? Math.round(data.heartRate.end) : 0;
   const hrChange = data.heartRate.diff !== null && data.heartRate.diff !== undefined ? Math.round(data.heartRate.diff) : 0;
 
-  // 동적 피드백 멘트
   let resultText = '';
   if (lfhfChange !== 0 && !isNaN(Number(lfhfChange))) {
     if (Number(lfhfChange) > 0) {
@@ -159,7 +171,6 @@ export default function FeedbackPage() {
     resultText = isSuccess ? '명상 성공을 통해 안정되었습니다.' : '명상 미완성';
   }
 
-  // LF/HF 변화율에 따라 색상 결정
   let resultColor = '';
   if (lfhfChange !== 0 && !isNaN(Number(lfhfChange))) {
     if (Number(lfhfChange) > 0) {
@@ -175,11 +186,9 @@ export default function FeedbackPage() {
     <div className="min-h-screen bg-[#F8FBFF] text-[#2D3142] pb-10">
       <Header title="명상 피드백" onBack={() => navigate(-1)} />
 
-      <main className="px-6 space-y-8">
-        <div className={`p-4 rounded-lg text-center font-bold text-lg ${resultColor}`}>
-          {resultText}
-        </div>
-
+      {/* 🚀 [수정] space-y-8을 space-y-5로 변경하여 요소들 사이의 간격을 좁혔습니다. */}
+      <main className="px-6 space-y-7">
+        {/* 1. 기본 정보 섹션 */}
         <div className="space-y-4 text-md border-b border-gray-100 text-[#64748B] pb-4">
           <div className="flex justify-between">
             <span>날짜</span>
@@ -195,6 +204,7 @@ export default function FeedbackPage() {
           </div>
         </div>
 
+        {/* 2. 한 줄 메모 입력창 */}
         <div className="space-y-3">
           <label className="text-sm font-bold text-[#64748B] uppercase">한 줄 메모</label>
           <input
@@ -206,6 +216,7 @@ export default function FeedbackPage() {
           />
         </div>
 
+        {/* 3. 메모 저장 상태 메시지 */}
         {saveMessage && (
           <div
             className={`p-4 rounded-lg text-center font-bold ${
@@ -218,6 +229,11 @@ export default function FeedbackPage() {
           </div>
         )}
 
+        <div className={`p-4 rounded-lg text-center font-bold text-lg shadow-sm ${resultColor}`}>
+          {resultText}
+        </div>
+
+        {/* 4. 실시간 생체 데이터 피드백 카드 */}
         <FeedbackCard
           title="LF/HF 변화"
           value={lfhfEnd}
@@ -236,6 +252,7 @@ export default function FeedbackPage() {
           end={{ val: hrEnd, percent: `${hrEnd !== 0 ? Math.min((hrEnd / 120) * 100, 100) : 0}%` }}
         />
 
+        {/* 5. 추천 명상 섹션 (실패 시에만 출력) */}
         {!isSuccess && data.recommendedMeditations.length > 0 && (
           <div className="space-y-4">
             <h3 className="text-lg font-bold text-[#0F172A]">추천 명상</h3>
@@ -259,10 +276,11 @@ export default function FeedbackPage() {
           </div>
         )}
 
+        {/* 6. 저장하기 버튼 */}
         <button
           onClick={handleSaveNote}
           disabled={isSaving}
-          className={`w-full py-5 rounded-2xl font-bold text-xl shadow-lg shadow-[#6BE6C1]/20 active:scale-[0.95] transition-all ${
+          className={`w-full py-5 rounded-2xl font-bold text-xl shadow-lg shadow-[#6BE6C1]/20 active:scale-[0.95] transition-all !mt-3 ${
             isSaving
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
               : 'bg-[#6BE6C1] text-[#0F172A] hover:bg-[#5FD4A3]'
