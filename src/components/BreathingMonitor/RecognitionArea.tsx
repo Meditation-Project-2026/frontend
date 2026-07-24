@@ -14,8 +14,8 @@ const RecognitionArea: React.FC<RecognitionAreaProps> = ({ videoStream }) => {
   }, [videoStream]);
 
   return (
-    <section className="relative mb-12">
-      <div className="relative w-72 h-72 mx-auto overflow-hidden rounded-[40px] border-4 border-[#45947D] shadow-2xl shadow-[#6BE6C1]/20">
+    <section className="relative mb-6">
+      <div className="relative w-56 h-56 mx-auto overflow-hidden rounded-3xl border-4 border-[#45947D] shadow-2xl shadow-[#6BE6C1]/20">
         <video
           ref={videoRef}
           autoPlay
@@ -25,10 +25,10 @@ const RecognitionArea: React.FC<RecognitionAreaProps> = ({ videoStream }) => {
         />
 
 
-        <div className="absolute inset-6 border-2 border-[#45947D]/40 rounded-3xl"></div>
+        <div className="absolute inset-4 border-2 border-[#45947D]/40 rounded-2xl"></div>
       </div>
 
-      <p className="text-center text-sm mt-6 text-[#45947D] dark:text-[#6BE6C1] font-semibold tracking-wide">
+      <p className="text-center text-xs mt-4 text-[#45947D] dark:text-[#6BE6C1] font-semibold tracking-wide">
         안면 인식 유지 중...
       </p>
     </section>

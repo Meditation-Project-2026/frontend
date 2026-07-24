@@ -26,3 +26,13 @@
     animation: scan-line 2.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
   }
 }
+
+@layer utilities {
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

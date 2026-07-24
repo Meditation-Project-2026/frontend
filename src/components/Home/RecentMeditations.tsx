@@ -13,21 +13,21 @@ interface MeditationCardProps {
 
 const MeditationCard: React.FC<MeditationCardProps> = ({ item, onClick }) => (
   <div
-    className="flex-shrink-0 w-40 cursor-pointer"
+    className="flex-shrink-0 w-32 cursor-pointer"
     onClick={() => onClick?.(item)}
   >
-    <div className="relative aspect-[3/4] rounded-[2rem] overflow-hidden mb-3 shadow-sm">
+    <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-2 shadow-sm">
       <img
         src={item.imageUrl}
         alt={item.title}
         className="w-full h-full object-cover"
       />
-      <div className="absolute bottom-3 left-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-full text-[10px] font-bold text-secondary">
+      <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] font-bold text-secondary">
         {item.tag}
       </div>
     </div>
-    <h3 className="font-bold text-[14px] leading-tight px-1 mb-1 truncate">{item.title}</h3>
-    <p className="text-[11px] text-secondary px-1">{item.duration}</p>
+    <h3 className="font-bold text-sm leading-tight px-0.5 mb-0.5 truncate">{item.title}</h3>
+    <p className="text-xs text-secondary px-0.5">{item.duration}</p>
   </div>
 );
 
@@ -67,18 +67,18 @@ const RecentMeditations: React.FC<RecentMeditationsProps> = ({
   onItemClick,
 }) => {
   return (
-    <section className="space-y-4">
-      <div className="flex justify-between items-center px-6">
+    <section className="space-y-3">
+      <div className="flex justify-between items-center px-5">
         <h2 className="font-bold text-lg tracking-tight">최근에 들은 명상</h2>
         <button
           onClick={onViewAll}
-          className="text-[12px] font-semibold text-secondary flex items-center gap-0.5"
+          className="text-xs font-semibold text-secondary flex items-center gap-0.5"
         >
 
-          <span className="material-symbols-outlined text-[16px]">chevron_right</span>
+          <span className="material-symbols-outlined text-base">chevron_right</span>
         </button>
       </div>
-      <div className="flex overflow-x-auto px-6 gap-4 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+      <div className="flex overflow-x-auto px-5 gap-3 pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {items.map((item) => (
           <MeditationCard key={item.id} item={item} onClick={onItemClick} />
         ))}

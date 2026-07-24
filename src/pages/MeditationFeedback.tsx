@@ -11,10 +11,27 @@ interface FeedbackState {
   error: string | null;
 }
 
+// 디자인 확인용 목데이터. 실제 백엔드에 없는 logId로는 화면을 볼 수 없어서 추가함.
+// /meditation-feedback?preview=1 로 접속하면 API 호출 없이 이 데이터로 바로 렌더링됨.
+const MOCK_FEEDBACK: MeditationFeedbackResponse = {
+  meditationDate: new Date().toISOString(),
+  title: '10분 아침 명상',
+  totalDuration: '612',
+  lfhf: { start: 1.62, end: 0.84, changeRate: -48.1 },
+  heartRate: { start: 78, end: 66, diff: -12 },
+  resultStatus: 'SUCCESS',
+  userNote: null,
+  recommendedMeditations: [
+    { id: 1, title: '깊은 잠을 위한 수면 유도', backgroundUrl: '/images/medi5.jpg' },
+    { id: 2, title: '숲속의 아침', backgroundUrl: '/images/medi6.jpg' },
+  ],
+};
+
 export default function FeedbackPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const logId = searchParams.get('logId');
+  const isPreview = searchParams.get('preview') === '1' || !logId;
 
   const [feedback, setFeedback] = useState<FeedbackState>({
     data: null,
@@ -28,9 +45,16 @@ export default function FeedbackPage() {
 
   // 📊 피드백 데이터 로드 및 폴링 로직 구현
   useEffect(() => {
+    if (isPreview) {
+      // 목데이터로 즉시 렌더링 (API 호출 없음)
+      setFeedback({ data: MOCK_FEEDBACK, loading: false, error: null });
+      setUserNote(MOCK_FEEDBACK.userNote || '');
+      return;
+    }
+
     if (!logId) return;
 
-    let timerId: NodeJS.Timeout;
+    let timerId: ReturnType<typeof setTimeout>;
 
     const loadFeedback = async () => {
       try {
@@ -58,10 +82,17 @@ export default function FeedbackPage() {
     return () => {
       if (timerId) clearTimeout(timerId);
     };
-  }, [logId]);
+  }, [logId, isPreview]);
 
   // 💾 사용자 노트 저장 및 홈 이동 로직
   const handleSaveNote = async () => {
+    if (isPreview) {
+      // 미리보기 모드에서는 실제 저장 없이 UI만 확인
+      setSaveMessage({ type: 'success', text: '(미리보기) 메모가 저장된 것처럼 표시됩니다' });
+      setTimeout(() => setSaveMessage(null), 1500);
+      return;
+    }
+
     if (!logId) return;
 
     setIsSaving(true);
@@ -116,9 +147,9 @@ export default function FeedbackPage() {
   // 로딩 중 (디자인 수정 버전)
   if (feedback.loading) {
     return (
-      <div className="min-h-screen bg-[#F8FBFF] text-[#2D3142] flex flex-col">
+      <div className="min-h-[100svh] bg-[#F8FBFF] text-[#2D3142] flex flex-col overflow-hidden">
         <Header title="명상 피드백" onBack={() => navigate(-1)} />
-        <div className="flex-1 flex flex-col items-center justify-center pb-20">
+        <div className="flex-1 flex flex-col items-center justify-center pb-20 overflow-y-auto hide-scrollbar">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#45947D]"></div>
             <p className="mt-4 text-[#64748B] font-medium animate-pulse">
@@ -133,9 +164,9 @@ export default function FeedbackPage() {
   // 에러 발생
   if (feedback.error || !feedback.data) {
     return (
-      <div className="min-h-screen bg-[#F8FBFF] text-[#2D3142] flex flex-col">
+      <div className="min-h-[100svh] bg-[#F8FBFF] text-[#2D3142] flex flex-col overflow-hidden">
         <Header title="명상 피드백" onBack={() => navigate(-1)} />
-        <main className="flex-1 flex items-center justify-center px-6">
+        <main className="flex-1 flex items-center justify-center px-6 overflow-y-auto hide-scrollbar">
           <div className="text-center">
             <p className="text-red-600 font-bold mb-4">{feedback.error || '데이터를 불러올 수 없습니다.'}</p>
             <button
@@ -183,13 +214,13 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#F8FBFF] text-[#2D3142] pb-10">
+    <div className="min-h-[100svh] bg-[#F8FBFF] text-[#2D3142] flex flex-col overflow-hidden">
       <Header title="명상 피드백" onBack={() => navigate(-1)} />
 
       {/* 🚀 [수정] space-y-8을 space-y-5로 변경하여 요소들 사이의 간격을 좁혔습니다. */}
-      <main className="px-6 space-y-7">
+      <main className="flex-1 overflow-y-auto hide-scrollbar px-5 pb-6 space-y-5">
         {/* 1. 기본 정보 섹션 */}
-        <div className="space-y-4 text-md border-b border-gray-100 text-[#64748B] pb-4">
+        <div className="space-y-3 text-sm border-b border-gray-100 text-[#64748B] pb-4">
           <div className="flex justify-between">
             <span>날짜</span>
             <span className="text-[#0F172A] font-medium">{formatDate(data.meditationDate)}</span>
@@ -212,14 +243,14 @@ export default function FeedbackPage() {
             value={userNote}
             onChange={(e) => setUserNote(e.target.value)}
             placeholder="오늘 명상은 어땠나요?"
-            className="w-full bg-white border border-gray-100 rounded-2xl px-5 py-4 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#45947D] placeholder:text-[#6B7280]"
+            className="w-full bg-white border border-gray-100 rounded-xl px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#45947D] placeholder:text-[#6B7280]"
           />
         </div>
 
         {/* 3. 메모 저장 상태 메시지 */}
         {saveMessage && (
           <div
-            className={`p-4 rounded-lg text-center font-bold ${
+            className={`p-4 rounded-lg text-center font-semibold text-sm ${
               saveMessage.type === 'success'
                 ? 'bg-green-100 text-green-700'
                 : 'bg-red-100 text-red-700'
@@ -229,7 +260,7 @@ export default function FeedbackPage() {
           </div>
         )}
 
-        <div className={`p-4 rounded-lg text-center font-bold text-lg shadow-sm ${resultColor}`}>
+        <div className={`p-4 rounded-lg text-center font-semibold text-sm shadow-sm ${resultColor}`}>
           {resultText}
         </div>
 
@@ -280,7 +311,7 @@ export default function FeedbackPage() {
         <button
           onClick={handleSaveNote}
           disabled={isSaving}
-          className={`w-full py-5 rounded-2xl font-bold text-xl shadow-lg shadow-[#6BE6C1]/20 active:scale-[0.95] transition-all !mt-3 ${
+          className={`w-full py-4 rounded-2xl font-bold text-base shadow-sm active:scale-[0.98] transition-all !mt-8 ${
             isSaving
               ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
               : 'bg-[#6BE6C1] text-[#0F172A] hover:bg-[#5FD4A3]'

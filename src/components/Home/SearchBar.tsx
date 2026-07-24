@@ -10,16 +10,16 @@ const SearchBar: React.FC<SearchBarProps> = ({
   onChange,
 }) => {
   return (
-    <div className="px-6 mb-8">
+    <div className="px-5 mb-5">
       <div className="relative flex items-center">
-        <span className="material-symbols-outlined absolute left-4 text-secondary/60 text-[20px]">
+        <span className="material-symbols-outlined absolute left-3.5 text-secondary/60 text-base">
           search
         </span>
         <input
           type="text"
           placeholder={placeholder}
           onChange={(e) => onChange?.(e.target.value)}
-          className="w-full bg-white border border-gray-100 rounded-2xl py-3.5 pl-11 pr-4 text-sm focus:ring-1 focus:ring-accent/30 placeholder:text-gray-400 font-medium shadow-sm outline-none"
+          className="w-full bg-white border border-gray-100 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-1 focus:ring-accent/30 placeholder:text-gray-400 font-medium shadow-sm outline-none"
         />
       </div>
     </div>

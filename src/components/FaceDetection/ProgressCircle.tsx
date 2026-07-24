@@ -10,7 +10,7 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({ percentage }) => {
   const offset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className="flex flex-col items-center justify-center w-full mb-auto">
+    <div className="flex flex-col items-center justify-center w-full">
       <div className="relative w-20 h-20 mb-3">
         <svg className="w-full h-full transform -rotate-90" viewBox="0 0 100 100">
           <circle 

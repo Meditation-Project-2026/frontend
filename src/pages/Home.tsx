@@ -4,6 +4,7 @@ import SearchBar from '../components/Home/SearchBar';
 import RecentMeditations from '../components/Home/RecentMeditations';
 import FavoriteContents from '../components/Home/FavoriteContents';
 import ActionButtons from '../components/Home/ActionButtons';
+import PageContainer from '../components/Layout/PageContainer';
 import { useState } from 'react';
 
 // 임시 meditationId (실제로는 선택한 콘텐츠 ID를 전달)
@@ -44,7 +45,7 @@ const Home: React.FC = () => {
   };
   
   return (
-    <div className="w-full max-w-md bg-background-serene flex flex-col relative min-h-screen pb-24">
+    <PageContainer className="relative pb-6">
       {/* 헤더 */}
       <HomeHeader greeting="좋은 저녁이에요" userName="재석님" />
 
@@ -52,7 +53,7 @@ const Home: React.FC = () => {
       <SearchBar />
 
       {/* 메인 콘텐츠 */}
-      <main className="flex-1 space-y-6 overflow-y-auto hide-scrollbar pb-10">
+      <main className="space-y-5 pb-6">
         {/* 최근에 들은 명상 */}
         <RecentMeditations
           onViewAll={() => navigate('/contents')}
@@ -74,10 +75,10 @@ const Home: React.FC = () => {
         {showModal && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
             <div className="bg-white rounded-3xl p-8 w-[85%] max-w-sm shadow-xl">
-              <h2 className="text-xl font-bold text-center text-[#1A4D43] mb-3">
+              <h2 className="text-xl font-bold text-center text-accent mb-3">
                 호흡 가이드와 함께하시겠습니까?
               </h2>
-              <p className="text-sm text-[#1A4D43] text-center mb-6">
+              <p className="text-sm text-accent text-center mb-6">
                 안정적인 호흡 패턴을 따라 명상을 진행합니다.
               </p>
 
@@ -91,7 +92,7 @@ const Home: React.FC = () => {
 
                 <button
                   onClick={handleConfirm}
-                  className="flex-1 py-3 rounded-2xl bg-[#6BE6C1] text-[#1A4D43] font-bold"
+                  className="flex-1 py-3 rounded-2xl bg-primary text-accent font-bold"
                 >
                   예
                 </button>
@@ -99,7 +100,7 @@ const Home: React.FC = () => {
             </div>
           </div>
         )}
-    </div>
+    </PageContainer>
   );
 };
 

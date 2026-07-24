@@ -242,10 +242,10 @@ const BreathingGuide: React.FC = () => {
       </div>
 
       {/* 메인 콘텐츠 영역 */}
-      <main className="flex-1 flex flex-col px-5 pt-4 pb-5 w-full overflow-y-auto justify-between">
+      <main className="flex-1 flex flex-col px-5 pt-4 pb-5 w-full overflow-y-auto hide-scrollbar justify-between">
         <div>
           {/* 웹소켓 연결 상태 */}
-          <div className="m-6 flex items-center gap-2 justify-center">
+          <div className="mb-4 flex items-center gap-2 justify-center">
             <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
             <span className="text-sm text-[#45947D] font-medium">
               {isConnected ? 'WebSocket 연결됨' : 'WebSocket 연결 중...'}
@@ -255,11 +255,7 @@ const BreathingGuide: React.FC = () => {
           {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg text-sm">{error}</div>}
 
           {/* 타이머 */}
-          <div className="text-center mb-4">
-            <h2 className="text-4xl font-bold text-[#1A4D43]">
-              <MeditationTimer time={formatTime(meditationTime)} />
-            </h2>
-          </div>
+          <MeditationTimer time={formatTime(meditationTime)} />
 
           {/* 원형 애니메이션 호흡 가이드 컴포넌트 */}
           <BreathingCircle />

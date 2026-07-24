@@ -14,7 +14,7 @@ const FavoriteItemCard: React.FC<FavoriteItemCardProps> = ({ item, onClick }) =>
     <div className="aspect-square rounded-2xl overflow-hidden mb-2 ring-1 ring-black/5">
       <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
     </div>
-    <p className="text-[11px] font-bold text-secondary">{item.title}</p>
+    <p className="text-xs font-bold text-secondary">{item.title}</p>
   </div>
 );
 
@@ -51,12 +51,12 @@ const FavoriteContents: React.FC<FavoriteContentsProps> = ({
   onItemClick,
 }) => {
   return (
-    <section className="px-6 space-y-4">
+    <section className="px-5 space-y-3">
       <div className="flex justify-between items-center">
         <h2 className="font-bold text-lg tracking-tight">즐겨찾기한 콘텐츠</h2>
         <button onClick={onMoreClick}>
              {/* 🚀 text-[#45947D] 클래스를 추가하여 초록색으로 변경 */}
-             <span className="material-symbols-outlined text-[16px] text-[#45947D]">chevron_right</span>
+             <span className="material-symbols-outlined text-base text-[#45947D]">chevron_right</span>
         </button>
       </div>
       <div className="grid grid-cols-3 gap-3">
