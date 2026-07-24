@@ -179,7 +179,7 @@ const BreathingFull: React.FC = () => {
   }, [logId]);
 
   return (
-    <div className="min-h-screen bg-[#F6F8FA] dark:bg-[#0F172A] flex flex-col relative">
+    <div className="min-h-[100svh] bg-[#F6F8FA] dark:bg-[#0F172A] flex flex-col relative overflow-hidden">
 
       {/* 숨겨진 video/canvas */}
       <video
@@ -220,7 +220,7 @@ const BreathingFull: React.FC = () => {
         <CameraFrame />
       </div>
 
-      <main className="overflow-y-auto px-6 pb-20">
+      <main className="flex-1 overflow-y-auto hide-scrollbar flex flex-col justify-center px-5 pb-6">
 
         {/* 연결 상태 */}
         <div className="mb-4 flex items-center gap-2 justify-center">

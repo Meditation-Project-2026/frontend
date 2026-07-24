@@ -10,24 +10,24 @@ const StatusCards: React.FC<StatusCardsProps> = ({
   lfHfRatio,
 }) => {
   return (
-    <div className="grid grid-cols-2 gap-4 mb-8 shrink-0">
+    <div className="grid grid-cols-2 gap-3 mb-5 shrink-0">
 
       {/* 심박수 */}
       <div
         className="
           bg-white
           dark:bg-zinc-900
-          p-6
-          rounded-[32px]
+          p-4
+          rounded-2xl
           shadow-sm
           border
           border-slate-100
           dark:border-zinc-800
         "
       >
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-2">
           <Heart
-            size={18}
+            size={16}
             className="text-[#45947D]"
           />
 
@@ -47,7 +47,7 @@ const StatusCards: React.FC<StatusCardsProps> = ({
         <div className="flex items-baseline gap-1">
           <span
             className="
-              text-4xl
+              text-2xl
               font-bold
               text-[#1A4D43]
               dark:text-slate-100
@@ -56,7 +56,7 @@ const StatusCards: React.FC<StatusCardsProps> = ({
             {heartRate || '-'}
           </span>
 
-          <span className="text-sm font-medium text-slate-400">
+          <span className="text-xs font-medium text-slate-400">
             bpm
           </span>
         </div>
@@ -67,17 +67,17 @@ const StatusCards: React.FC<StatusCardsProps> = ({
         className="
           bg-white
           dark:bg-zinc-900
-          p-6
-          rounded-[32px]
+          p-4
+          rounded-2xl
           shadow-sm
           border
           border-slate-100
           dark:border-zinc-800
         "
       >
-        <div className="flex items-center gap-2 mb-4">
+        <div className="flex items-center gap-2 mb-2">
           <Waves
-            size={18}
+            size={16}
             className="text-[#45947D]"
           />
 
@@ -97,7 +97,7 @@ const StatusCards: React.FC<StatusCardsProps> = ({
         <div className="flex items-baseline gap-1">
           <span
             className="
-              text-4xl
+              text-2xl
               font-bold
               text-[#1A4D43]
               dark:text-slate-100
@@ -106,7 +106,7 @@ const StatusCards: React.FC<StatusCardsProps> = ({
             {lfHfRatio || '-'}
           </span>
 
-          <span className="text-sm font-medium text-slate-400">
+          <span className="text-xs font-medium text-slate-400">
             ratio
           </span>
         </div>

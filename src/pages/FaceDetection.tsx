@@ -128,7 +128,7 @@ const FaceDetection: React.FC = () => {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center w-full max-w-md mx-auto">
+    <div className="relative min-h-[100svh] w-full max-w-md mx-auto flex flex-col items-center overflow-hidden">
       <Header
         title="Face Detection"
         onBack={handleBack}
@@ -137,32 +137,32 @@ const FaceDetection: React.FC = () => {
         onRightClick={handleCancel}
       />
 
-      <main className="flex-1 flex flex-col items-center px-6 w-full relative z-10">
-        <div className="w-full text-center mt-2 mb-6">
-          <h2 className="text-xl md:text-2xl font-bold text-[#0F172A] dark:text-white leading-tight mb-2">
+      <main className="flex-1 flex flex-col items-center px-5 pb-6 w-full relative z-10 overflow-y-auto hide-scrollbar">
+        <div className="w-full text-center mt-2 mb-5">
+          <h2 className="text-lg font-bold text-[#0F172A] dark:text-white leading-snug mb-2">
             명상 전에 카메라를 확인하고
             <br />
             얼굴이 프레임 안에 들어오게 맞춰주세요
           </h2>
-          <p className="text-sm text-[#6B7280]">
+          <p className="text-xs text-[#6B7280]">
             정확한 측정을 위해 정면을 바라보고 움직임을 최소화해주세요.
           </p>
         </div>
 
-        <div className="w-full aspect-[3.5/4.5] mb-8 rounded-[2rem] overflow-hidden">
+        <div className="w-64 aspect-[3.5/4.5] mx-auto mb-5 rounded-2xl overflow-hidden">
           <CameraFrame stream={stream} />
         </div>
 
         <ProgressCircle percentage={Math.round(progress)} />
 
         {error && (
-          <div className="w-full mt-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+          <div className="w-full mt-5 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
             {error}
           </div>
         )}
 
         {isDetected && (
-          <div className="w-full mt-8 space-y-3">
+          <div className="w-full mt-5 space-y-3">
             <button
               onClick={handleStartMeditation}
               disabled={isLoading}

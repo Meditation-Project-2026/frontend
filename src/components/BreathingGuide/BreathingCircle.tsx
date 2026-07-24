@@ -16,7 +16,7 @@ const BreathingCircle: React.FC = () => {
       className="
         relative
         w-full
-        h-[320px]
+        h-[260px]
         flex
         items-center
         justify-center
@@ -35,8 +35,8 @@ const BreathingCircle: React.FC = () => {
           ease-in-out
           ${
             isBreathingIn
-              ? 'w-64 h-64'
-              : 'w-48 h-48'
+              ? 'w-52 h-52'
+              : 'w-40 h-40'
           }
         `}
       />
@@ -52,8 +52,8 @@ const BreathingCircle: React.FC = () => {
           ease-in-out
           ${
             isBreathingIn
-              ? 'w-56 h-56'
-              : 'w-44 h-44'
+              ? 'w-44 h-44'
+              : 'w-36 h-36'
           }
         `}
       />
@@ -69,8 +69,8 @@ const BreathingCircle: React.FC = () => {
           ease-in-out
           ${
             isBreathingIn
-              ? 'w-44 h-44'
-              : 'w-36 h-36'
+              ? 'w-36 h-36'
+              : 'w-28 h-28'
           }
         `}
       />
@@ -92,8 +92,8 @@ const BreathingCircle: React.FC = () => {
           ease-in-out
           ${
             isBreathingIn
-              ? 'w-36 h-36'
-              : 'w-28 h-28'
+              ? 'w-28 h-28'
+              : 'w-24 h-24'
           }
         `}
       >

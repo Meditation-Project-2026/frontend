@@ -4,7 +4,7 @@ const SessionPlayer: React.FC = () => {
   return (
     <div
       className="
-        mx-6
+        mx-5
         mb-4
         bg-slate-900/95
         dark:bg-slate-800/95

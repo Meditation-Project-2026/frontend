@@ -3,18 +3,20 @@ import { ChevronLeft } from 'lucide-react';
 
 
 interface HeaderProps {
+  title?: string;
   onBack?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ 
-  onBack, 
+const Header: React.FC<HeaderProps> = ({
+  title = '호흡 모니터링',
+  onBack,
 }) => {
   return (
     <div
       className="
         relative
-        px-6
-        pt-10
+        px-5
+        pt-5
         pb-4
         flex
         items-center
@@ -27,7 +29,8 @@ const Header: React.FC<HeaderProps> = ({
       <button
         onClick={onBack}
         className="
-          p-2
+          w-9
+          h-9
           rounded-full
           bg-white
           dark:bg-[#1E293B]
@@ -42,7 +45,7 @@ const Header: React.FC<HeaderProps> = ({
           active:scale-95
         "
       >
-        <ChevronLeft size={22} />
+        <ChevronLeft size={18} />
       </button>
 
       {/* 제목 */}
@@ -51,12 +54,12 @@ const Header: React.FC<HeaderProps> = ({
           absolute
           left-1/2
           -translate-x-1/2
-          text-lg
+          text-base
           font-bold
           tracking-tight
         "
       >
-        호흡 모니터링
+        {title}
       </h1>
     </div>
   );

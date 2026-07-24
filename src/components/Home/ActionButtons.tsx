@@ -26,18 +26,18 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
 
   return (
     <>
-      <section className="px-6 space-y-3 pb-8">
+      <section className="px-5 space-y-2.5 pb-6">
         {/* 명상 시작 버튼 */}
         <button
           onClick={onStartMeditation}
-          className="w-full bg-[#6BE6C1] rounded-[2.2rem] p-7 flex items-center justify-between shadow-md hover:opacity-95 transition-opacity"
+          className="w-full bg-[#6BE6C1] rounded-2xl p-5 flex items-center justify-between shadow-md hover:opacity-95 transition-opacity"
         >
           <div className="text-left">
-            <h3 className="text-[19px] font-bold mb-1 text-[#1A4D43]">명상 시작</h3>
-            <p className="text-[12px] font-medium text-[#1A4D43]/60">오늘의 평온을 찾아서</p>
+            <h3 className="text-base font-bold mb-1 text-[#1A4D43]">명상 시작</h3>
+            <p className="text-xs font-medium text-[#1A4D43]/60">오늘의 평온을 찾아서</p>
           </div>
-          <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm">
-            <span className="material-symbols-outlined filled text-[#1A4D43] text-[28px]">
+          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm">
+            <span className="material-symbols-outlined filled text-[#1A4D43] text-[22px]">
               play_arrow
             </span>
           </div>
@@ -46,14 +46,14 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         {/* 호흡 가이드 시작 버튼 */}
         <button
           onClick={handleBreathingClick}
-          className="w-full bg-white border border-[#6BE6C1]/20 rounded-[2.2rem] p-7 flex items-center justify-between shadow-sm hover:bg-accent/5 transition-colors"
+          className="w-full bg-white border border-[#6BE6C1]/20 rounded-2xl p-5 flex items-center justify-between shadow-sm hover:bg-accent/5 transition-colors"
         >
           <div className="text-left">
-            <h3 className="text-[19px] font-bold mb-1 text-[#1A4D43]">호흡 가이드 시작</h3>
-            <p className="text-[12px] font-medium text-[#1A4D43]">안정적인 호흡을 따라가보세요</p>
+            <h3 className="text-base font-bold mb-1 text-[#1A4D43]">호흡 가이드 시작</h3>
+            <p className="text-xs font-medium text-[#1A4D43]">안정적인 호흡을 따라가보세요</p>
           </div>
-          <div className="w-12 h-12 bg-[#6BE6C1]/20 rounded-full flex items-center justify-center">
-            <span className="material-symbols-outlined text-[#1A4D43] text-[28px]">
+          <div className="w-10 h-10 bg-[#6BE6C1]/20 rounded-full flex items-center justify-center">
+            <span className="material-symbols-outlined text-[#1A4D43] text-[22px]">
               air
             </span>
           </div>

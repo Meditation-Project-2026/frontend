@@ -209,37 +209,34 @@ const BreathingMonitor: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#F8FAF8] dark:bg-zinc-950 flex flex-col">
+    <div className="h-[100svh] bg-[#F8FAF8] dark:bg-zinc-950 flex flex-col overflow-hidden">
       <Header title="명상 모니터링" onBack={() => navigate(-1)} />
 
-      <main className="flex-1 flex flex-col justify-center px-6 pb-10 max-w-2xl mx-auto w-full">
+      <main className="flex-1 flex flex-col px-5 pt-2 pb-5 max-w-2xl mx-auto w-full overflow-y-auto hide-scrollbar justify-between">
         <video ref={videoRef} autoPlay playsInline muted className="hidden" width="640" height="480" />
         <canvas ref={canvasRef} className="hidden" width="72" height="72" />
 
-        <div className="mb-4 flex items-center gap-2 justify-center">
-          <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-          <span className="text-sm text-[#45947D] font-medium">
-            {isConnected ? 'WebSocket 연결됨' : 'WebSocket 연결 중...'}
-          </span>
+        <div>
+          <ConnectionStatus isConnected={isConnected} />
+
+          {error && (
+            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
+          <MeditationTimer time={formatTime(meditationTime)} />
+
+          <RecognitionArea videoStream={stream} />
+
+          <BiometricCards heartRate={biometricData.heartRate} lfHfRatio={biometricData.lfHfRatio} />
         </div>
 
-        <ConnectionStatus isConnected={isConnected} />
+        <div className="space-y-3 w-full mt-auto">
+          <FaceStatus isFaceDetected={biometricData.isFaceDetected} />
 
-        {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
-
-        <MeditationTimer time={formatTime(meditationTime)} />
-
-        <RecognitionArea videoStream={stream} />
-
-        <BiometricCards heartRate={biometricData.heartRate} lfHfRatio={biometricData.lfHfRatio} />
-
-        <FaceStatus isFaceDetected={biometricData.isFaceDetected} />
-
-        <EndMeditationButton isRunning={isRunning} onClick={handleEndMeditation} />
+          <EndMeditationButton isRunning={isRunning} onClick={handleEndMeditation} />
+        </div>
       </main>
     </div>
   );

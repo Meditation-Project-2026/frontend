@@ -12,7 +12,7 @@ const EndMeditationButton: React.FC<
       disabled={!isRunning}
       className={`w-full py-4 px-4 rounded-2xl font-bold text-lg transition-all ${
         isRunning
-          ? 'bg-red-500 text-white hover:bg-red-600 active:scale-95'
+          ? 'bg-[#6BE6C1] text-[#0F172A] active:scale-95'
           : 'bg-gray-300 text-gray-500 cursor-not-allowed'
       }`}
     >
