@@ -147,12 +147,12 @@ export default function FeedbackPage() {
   // 로딩 중 (디자인 수정 버전)
   if (feedback.loading) {
     return (
-      <div className="min-h-[100svh] bg-[#F8FBFF] text-[#2D3142] flex flex-col overflow-hidden">
+      <div className="min-h-[100svh] bg-[#F8FBFF] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
         <Header title="명상 피드백" onBack={() => navigate(-1)} />
         <div className="flex-1 flex flex-col items-center justify-center pb-20 overflow-y-auto hide-scrollbar">
           <div className="text-center">
             <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#45947D]"></div>
-            <p className="mt-4 text-[#64748B] font-medium animate-pulse">
+            <p className="mt-4 text-[#64748B] dark:text-[#F5F3EF]/50 font-medium animate-pulse">
               피드백 데이터를 불러오는 중...
             </p>
           </div>
@@ -164,11 +164,11 @@ export default function FeedbackPage() {
   // 에러 발생
   if (feedback.error || !feedback.data) {
     return (
-      <div className="min-h-[100svh] bg-[#F8FBFF] text-[#2D3142] flex flex-col overflow-hidden">
+      <div className="min-h-[100svh] bg-[#F8FBFF] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
         <Header title="명상 피드백" onBack={() => navigate(-1)} />
         <main className="flex-1 flex items-center justify-center px-6 overflow-y-auto hide-scrollbar">
           <div className="text-center">
-            <p className="text-red-600 font-bold mb-4">{feedback.error || '데이터를 불러올 수 없습니다.'}</p>
+            <p className="text-red-600 dark:text-red-400 font-bold mb-4">{feedback.error || '데이터를 불러올 수 없습니다.'}</p>
             <button
               onClick={() => navigate(-1)}
               className="px-6 py-3 bg-[#45947D] text-white rounded-lg font-bold"
@@ -205,45 +205,45 @@ export default function FeedbackPage() {
   let resultColor = '';
   if (lfhfChange !== 0 && !isNaN(Number(lfhfChange))) {
     if (Number(lfhfChange) > 0) {
-      resultColor = 'bg-green-100 text-green-700';
+      resultColor = 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
     } else {
-      resultColor = 'bg-red-100 text-red-700';
+      resultColor = 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
     }
   } else {
-    resultColor = 'bg-red-100 text-red-700';
+    resultColor = 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
   }
 
   return (
-    <div className="min-h-[100svh] bg-[#F8FBFF] text-[#2D3142] flex flex-col overflow-hidden">
+    <div className="min-h-[100svh] bg-[#F8FBFF] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
       <Header title="명상 피드백" onBack={() => navigate(-1)} />
 
       {/* 🚀 [수정] space-y-8을 space-y-5로 변경하여 요소들 사이의 간격을 좁혔습니다. */}
       <main className="flex-1 overflow-y-auto hide-scrollbar px-5 pb-6 space-y-5">
         {/* 1. 기본 정보 섹션 */}
-        <div className="space-y-3 text-sm border-b border-gray-100 text-[#64748B] pb-4">
+        <div className="space-y-3 text-sm border-b border-gray-100 dark:border-white/[0.07] text-[#64748B] dark:text-[#F5F3EF]/50 pb-4">
           <div className="flex justify-between">
             <span>날짜</span>
-            <span className="text-[#0F172A] font-medium">{formatDate(data.meditationDate)}</span>
+            <span className="text-[#0F172A] dark:text-[#F5F3EF] font-medium">{formatDate(data.meditationDate)}</span>
           </div>
           <div className="flex justify-between">
             <span>명상</span>
-            <span className="text-[#0F172A] font-medium">{data.title}</span>
+            <span className="text-[#0F172A] dark:text-[#F5F3EF] font-medium">{data.title}</span>
           </div>
           <div className="flex justify-between">
             <span>총 시간</span>
-            <span className="text-[#0F172A] font-medium">{formatDuration(totalDuration || 0)}</span>
+            <span className="text-[#0F172A] dark:text-[#F5F3EF] font-medium">{formatDuration(totalDuration || 0)}</span>
           </div>
         </div>
 
         {/* 2. 한 줄 메모 입력창 */}
         <div className="space-y-3">
-          <label className="text-sm font-bold text-[#64748B] uppercase">한 줄 메모</label>
+          <label className="text-sm font-bold text-[#64748B] dark:text-[#F5F3EF]/50 uppercase">한 줄 메모</label>
           <input
             type="text"
             value={userNote}
             onChange={(e) => setUserNote(e.target.value)}
             placeholder="오늘 명상은 어땠나요?"
-            className="w-full bg-white border border-gray-100 rounded-xl px-4 py-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-[#45947D] placeholder:text-[#6B7280]"
+            className="w-full bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-xl px-4 py-3 text-sm text-[#2D3142] dark:text-[#F5F3EF] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#45947D] placeholder:text-[#6B7280] dark:placeholder:text-white/40"
           />
         </div>
 
@@ -252,8 +252,8 @@ export default function FeedbackPage() {
           <div
             className={`p-4 rounded-lg text-center font-semibold text-sm ${
               saveMessage.type === 'success'
-                ? 'bg-green-100 text-green-700'
-                : 'bg-red-100 text-red-700'
+                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
             }`}
           >
             {saveMessage.text}
@@ -286,12 +286,12 @@ export default function FeedbackPage() {
         {/* 5. 추천 명상 섹션 (실패 시에만 출력) */}
         {!isSuccess && data.recommendedMeditations.length > 0 && (
           <div className="space-y-4">
-            <h3 className="text-lg font-bold text-[#0F172A]">추천 명상</h3>
+            <h3 className="text-lg font-bold text-[#0F172A] dark:text-[#F5F3EF]">추천 명상</h3>
             <div className="space-y-3">
               {data.recommendedMeditations.map((meditation) => (
                 <div
                   key={meditation.id}
-                  className="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  className="p-4 bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                 >
                   {meditation.backgroundUrl && (
                     <img
@@ -300,7 +300,7 @@ export default function FeedbackPage() {
                       className="w-full h-32 object-cover rounded-lg mb-3"
                     />
                   )}
-                  <p className="font-bold text-[#0F172A]">{meditation.title}</p>
+                  <p className="font-bold text-[#0F172A] dark:text-[#F5F3EF]">{meditation.title}</p>
                 </div>
               ))}
             </div>
@@ -313,7 +313,7 @@ export default function FeedbackPage() {
           disabled={isSaving}
           className={`w-full py-4 rounded-2xl font-bold text-base shadow-sm active:scale-[0.98] transition-all !mt-8 ${
             isSaving
-              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              ? 'bg-gray-300 dark:bg-[#1E212B] text-gray-500 dark:text-[#F5F3EF]/30 cursor-not-allowed'
               : 'bg-[#6BE6C1] text-[#0F172A] hover:bg-[#5FD4A3]'
           }`}
         >

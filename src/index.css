@@ -4,7 +4,7 @@
 
 @layer base {
   body {
-    @apply bg-[#F3F4F6] dark:bg-[#1A4D43] min-h-screen flex flex-col font-sans text-[#1A4D43] dark:text-[#F9FAFB] overflow-hidden;
+    @apply bg-[#F3F4F6] dark:bg-[#050506] min-h-screen flex flex-col font-sans text-[#1A4D43] dark:text-[#F5F3EF] overflow-hidden;
   }
 }
 

@@ -16,13 +16,13 @@ const StatusCards: React.FC<StatusCardsProps> = ({
       <div
         className="
           bg-white
-          dark:bg-zinc-900
+          dark:bg-[#1E212B]
           p-4
           rounded-2xl
           shadow-sm
           border
           border-slate-100
-          dark:border-zinc-800
+          dark:border-white/[0.07]
         "
       >
         <div className="flex items-center gap-2 mb-2">
@@ -49,7 +49,7 @@ const StatusCards: React.FC<StatusCardsProps> = ({
             className="
               text-2xl
               font-bold
-              text-[#1A4D43]
+              text-[#191B1F]
               dark:text-slate-100
             "
           >
@@ -66,13 +66,13 @@ const StatusCards: React.FC<StatusCardsProps> = ({
       <div
         className="
           bg-white
-          dark:bg-zinc-900
+          dark:bg-[#1E212B]
           p-4
           rounded-2xl
           shadow-sm
           border
           border-slate-100
-          dark:border-zinc-800
+          dark:border-white/[0.07]
         "
       >
         <div className="flex items-center gap-2 mb-2">
@@ -99,7 +99,7 @@ const StatusCards: React.FC<StatusCardsProps> = ({
             className="
               text-2xl
               font-bold
-              text-[#1A4D43]
+              text-[#191B1F]
               dark:text-slate-100
             "
           >

@@ -209,7 +209,7 @@ const BreathingMonitor: React.FC = () => {
   };
 
   return (
-    <div className="h-[100svh] bg-[#F8FAF8] dark:bg-zinc-950 flex flex-col overflow-hidden">
+    <div className="h-[100svh] bg-[#F8FAF8] dark:bg-[#14161C] flex flex-col overflow-hidden">
       <Header title="명상 모니터링" onBack={() => navigate(-1)} />
 
       <main className="flex-1 flex flex-col px-5 pt-2 pb-5 max-w-2xl mx-auto w-full overflow-y-auto hide-scrollbar justify-between">

@@ -23,13 +23,13 @@ const Header: React.FC<HeaderProps> = ({
       {/* 왼쪽 뒤로가기 버튼 */}
       <button 
         onClick={onBack}
-        className="w-9 h-9 flex items-center justify-center rounded-full bg-white dark:bg-[#0F172A]/50 shadow-sm text-gray-500 dark:text-gray-300 active:scale-90 transition-transform"
+        className="w-9 h-9 flex items-center justify-center rounded-full bg-white dark:bg-[#1E212B] shadow-sm text-gray-500 dark:text-gray-300 active:scale-90 transition-transform"
       >
         <ChevronLeft size={18} strokeWidth={2.5} />
       </button>
 
       {/* 중앙 타이틀 */}
-      <h1 className="text-[#0F172A] dark:text-white text-base font-bold">{title}</h1>
+      <h1 className="text-[#0F172A] dark:text-[#F5F3EF] text-base font-bold">{title}</h1>
 
       {/* 오른쪽 영역 */}
       <div className="w-9 flex justify-end">
@@ -45,7 +45,7 @@ const Header: React.FC<HeaderProps> = ({
         {rightType === 'icon' && (
           <button 
             onClick={onRightClick}
-            className="p-2 text-[#1A4D43] dark:text-[#6BE6C1] active:scale-90 transition-transform flex items-center justify-end"
+            className="p-2 text-[#191B1F] dark:text-[#6BE6C1] active:scale-90 transition-transform flex items-center justify-end"
           >
             {/* 조건부로 아이콘 렌더링 */}
             {rightIcon === 'share' && <Share2 size={20} />}

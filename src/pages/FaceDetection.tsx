@@ -139,7 +139,7 @@ const FaceDetection: React.FC = () => {
 
       <main className="flex-1 flex flex-col items-center px-5 pb-6 w-full relative z-10 overflow-y-auto hide-scrollbar">
         <div className="w-full text-center mt-2 mb-5">
-          <h2 className="text-lg font-bold text-[#0F172A] dark:text-white leading-snug mb-2">
+          <h2 className="text-lg font-bold text-[#0F172A] dark:text-[#F5F3EF] leading-snug mb-2">
             명상 전에 카메라를 확인하고
             <br />
             얼굴이 프레임 안에 들어오게 맞춰주세요

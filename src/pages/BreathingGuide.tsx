@@ -226,7 +226,7 @@ const BreathingGuide: React.FC = () => {
 
   return (
     // 🔥 [핵심 수정] 최상단 레이아웃 클래스에 "relative"를 추가하여 내부의 absolute 요소들이 앱 스코프 안으로 들어오게 교정했습니다.
-    <div className="relative min-h-[100svh] max-w-[430px] w-full mx-auto shadow-md bg-[#F8FAF8] dark:bg-zinc-950 flex flex-col overflow-hidden">
+    <div className="relative min-h-[100svh] w-full bg-[#FAF9F5] dark:bg-[#14161C] flex flex-col overflow-hidden">
       {/* 분석용 숨겨진 비디오 */}
       <video ref={videoRef} autoPlay playsInline muted className="hidden" width="640" height="480" />
 
@@ -242,14 +242,20 @@ const BreathingGuide: React.FC = () => {
       </div>
 
       {/* 메인 콘텐츠 영역 */}
-      <main className="flex-1 flex flex-col px-5 pt-4 pb-5 w-full overflow-y-auto hide-scrollbar justify-between">
+      <main className="flex-1 flex flex-col gap-4 px-5 pt-4 pb-5 w-full overflow-y-auto hide-scrollbar">
         <div>
           {/* 웹소켓 연결 상태 */}
-          <div className="mb-4 flex items-center gap-2 justify-center">
-            <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-            <span className="text-sm text-[#45947D] font-medium">
-              {isConnected ? 'WebSocket 연결됨' : 'WebSocket 연결 중...'}
-            </span>
+          <div className="mb-4 flex justify-center">
+            <div
+              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 ${
+                isConnected ? 'bg-green-500/10' : 'bg-red-500/10'
+              }`}
+            >
+              <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+              <span className={`text-xs font-medium ${isConnected ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                {isConnected ? 'WebSocket 연결됨' : 'WebSocket 연결 중'}
+              </span>
+            </div>
           </div>
 
           {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg text-sm">{error}</div>}
@@ -265,7 +271,7 @@ const BreathingGuide: React.FC = () => {
         </div>
 
         {/* 하단 인터랙션 영역 */}
-        <div className="space-y-4 w-full mt-auto">
+        <div className="space-y-3 w-full">
           {/* 실시간 얼굴 감지 상태창 */}
           <div
             className={`w-full py-3.5 px-5 rounded-2xl border-2 bg-white text-center font-bold text-base shadow-sm transition-all duration-300 ${

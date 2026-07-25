@@ -47,7 +47,7 @@ const Home: React.FC = () => {
   return (
     <PageContainer className="relative pb-6">
       {/* 헤더 */}
-      <HomeHeader greeting="좋은 저녁이에요" userName="재석님" />
+      <HomeHeader greeting="좋은 저녁이에요" userName="세린님" />
 
       {/* 검색 바 */}
       <SearchBar />
@@ -74,18 +74,18 @@ const Home: React.FC = () => {
       {/* 모달 */}
         {showModal && (
           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-            <div className="bg-white rounded-3xl p-8 w-[85%] max-w-sm shadow-xl">
-              <h2 className="text-xl font-bold text-center text-accent mb-3">
+            <div className="bg-white dark:bg-[#1E212B] rounded-3xl p-8 w-[85%] max-w-sm shadow-xl">
+              <h2 className="text-xl font-bold text-center text-accent dark:text-[#F5F3EF] mb-3">
                 호흡 가이드와 함께하시겠습니까?
               </h2>
-              <p className="text-sm text-accent text-center mb-6">
+              <p className="text-sm text-accent dark:text-[#F5F3EF]/70 text-center mb-6">
                 안정적인 호흡 패턴을 따라 명상을 진행합니다.
               </p>
 
               <div className="flex gap-3">
                 <button
                   onClick={handleCancel}
-                  className="flex-1 py-3 rounded-2xl border border-gray-300 text-gray-600 font-semibold"
+                  className="flex-1 py-3 rounded-2xl border border-gray-300 dark:border-white/[0.12] text-gray-600 dark:text-[#F5F3EF]/70 font-semibold"
                 >
                   아니오
                 </button>

@@ -1,4 +1,4 @@
-interface CardProps {
+ interface CardProps {
   title: string;
   value: string | number;
   unit: string;
@@ -14,20 +14,20 @@ export const FeedbackCard = ({ title, value, unit, change, start, end }: CardPro
   let color = '';
   if (diff > 0) {
     arrow = '↑';
-    color = 'text-red-500';
+    color = 'text-red-500 dark:text-red-400';
   } else if (diff < 0) {
     arrow = '↓';
-    color = 'text-green-600';
+    color = 'text-green-600 dark:text-green-400';
   } else {
     arrow = '-';
-    color = 'text-gray-400';
+    color = 'text-gray-400 dark:text-[#F5F3EF]/40';
   }
 
   return (
-    <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-50">
-      <h3 className="text-gray-500 text-xs font-bold mb-2 uppercase tracking-wide">{title}</h3>
+    <div className="bg-white dark:bg-[#1E212B] p-4 rounded-2xl shadow-sm border border-gray-50 dark:border-white/[0.07]">
+      <h3 className="text-gray-500 dark:text-[#F5F3EF]/50 text-xs font-bold mb-2 uppercase tracking-wide">{title}</h3>
       <div className="flex items-baseline gap-2 mb-4">
-        <span className="text-3xl font-extrabold">{value}</span>
+        <span className="text-3xl font-extrabold text-[#0F172A] dark:text-[#F5F3EF]">{value}</span>
         <span className="text-base font-bold text-[#94A3B8]">{unit}</span>
         <span className={`ml-2 text-xs font-bold ${color}`}>{arrow} {change}</span>
       </div>
@@ -36,11 +36,11 @@ export const FeedbackCard = ({ title, value, unit, change, start, end }: CardPro
            { label: "후반", data: end, color: "bg-[#45947D]" }
         ].map((item, idx) => (
           <div key={idx} className="flex items-center gap-3">
-            <span className="text-xs text-gray-300 w-8">{item.label}</span>
-            <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+            <span className="text-xs text-gray-300 dark:text-[#F5F3EF]/30 w-8">{item.label}</span>
+            <div className="flex-1 h-2 bg-gray-100 dark:bg-[#1E212B] rounded-full overflow-hidden">
               <div className={`h-full ${item.color} rounded-full transition-all`} style={{ width: item.data.percent }}></div>
             </div>
-            <span className={`text-xs font-bold w-10 text-right ${idx === 1 ? 'text-[#45947D]' : ''}`}>{item.data.val}</span>
+            <span className={`text-xs font-bold w-10 text-right ${idx === 1 ? 'text-[#45947D] dark:text-primary' : 'dark:text-[#F5F3EF]/70'}`}>{item.data.val}</span>
           </div>
         ))}
       </div>

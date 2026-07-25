@@ -40,6 +40,9 @@ const BreathingFull: React.FC = () => {
   const [error, setError] =
     useState<string | null>(null);
 
+  const [stream, setStream] =
+    useState<MediaStream | null>(null);
+
   // refs
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -67,6 +70,7 @@ const BreathingFull: React.FC = () => {
           videoRef.current.srcObject =
             mediaStream;
         }
+        setStream(mediaStream);
       } catch (err) {
         console.error(err);
 
@@ -179,7 +183,7 @@ const BreathingFull: React.FC = () => {
   }, [logId]);
 
   return (
-    <div className="min-h-[100svh] bg-[#F6F8FA] dark:bg-[#0F172A] flex flex-col relative overflow-hidden">
+    <div className="min-h-[100svh] bg-[#F6F8FA] dark:bg-[#14161C] flex flex-col relative overflow-hidden">
 
       {/* 숨겨진 video/canvas */}
       <video
@@ -217,7 +221,7 @@ const BreathingFull: React.FC = () => {
           bg-black
         "
       >
-        <CameraFrame />
+        <CameraFrame stream={stream} />
       </div>
 
       <main className="flex-1 overflow-y-auto hide-scrollbar flex flex-col justify-center px-5 pb-6">

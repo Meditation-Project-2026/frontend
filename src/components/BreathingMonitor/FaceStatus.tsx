@@ -7,7 +7,7 @@ const FaceStatus: React.FC<FaceStatusProps> = ({
 }) => {
   return (
     <div
-      className={`w-full py-3.5 px-5 rounded-2xl border-2 bg-white dark:bg-zinc-900 text-center font-bold text-sm shadow-sm transition-all duration-300 ${
+      className={`w-full py-3.5 px-5 rounded-2xl border-2 bg-white dark:bg-[#1E212B] text-center font-bold text-sm shadow-sm transition-all duration-300 ${
         isFaceDetected
           ? 'border-[#45947D] text-[#45947D]'
           : 'border-red-200 text-red-500'
