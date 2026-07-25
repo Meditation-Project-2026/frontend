@@ -10,6 +10,7 @@ import BreathingCircle from '../components/BreathingGuide/BreathingCircle';
 import StatusCards from '../components/BreathingGuide/StatusCards';
 import CameraFrame from '../components/BreathingGuide/CameraFrame';
 import MeditationTimer from '../components/BreathingMonitor/MeditationTimer';
+import ConnectionStatus from '../components/BreathingMonitor/ConnectionStatus';
 import { saveMeditationRecord } from '../api/meditation';
 
 interface BiometricData {
@@ -245,18 +246,7 @@ const BreathingGuide: React.FC = () => {
       <main className="flex-1 flex flex-col gap-4 px-5 pt-4 pb-5 w-full overflow-y-auto hide-scrollbar">
         <div>
           {/* 웹소켓 연결 상태 */}
-          <div className="mb-4 flex justify-center">
-            <div
-              className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 ${
-                isConnected ? 'bg-green-500/10' : 'bg-red-500/10'
-              }`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
-              <span className={`text-xs font-medium ${isConnected ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                {isConnected ? 'WebSocket 연결됨' : 'WebSocket 연결 중'}
-              </span>
-            </div>
-          </div>
+          <ConnectionStatus isConnected={isConnected} />
 
           {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg text-sm">{error}</div>}
 

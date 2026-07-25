@@ -147,7 +147,7 @@ export default function FeedbackPage() {
   // 로딩 중 (디자인 수정 버전)
   if (feedback.loading) {
     return (
-      <div className="min-h-[100svh] bg-[#F8FBFF] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
+      <div className="min-h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
         <Header title="명상 피드백" onBack={() => navigate(-1)} />
         <div className="flex-1 flex flex-col items-center justify-center pb-20 overflow-y-auto hide-scrollbar">
           <div className="text-center">
@@ -164,7 +164,7 @@ export default function FeedbackPage() {
   // 에러 발생
   if (feedback.error || !feedback.data) {
     return (
-      <div className="min-h-[100svh] bg-[#F8FBFF] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
+      <div className="min-h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
         <Header title="명상 피드백" onBack={() => navigate(-1)} />
         <main className="flex-1 flex items-center justify-center px-6 overflow-y-auto hide-scrollbar">
           <div className="text-center">
@@ -214,7 +214,7 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="min-h-[100svh] bg-[#F8FBFF] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
+    <div className="min-h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
       <Header title="명상 피드백" onBack={() => navigate(-1)} />
 
       {/* 🚀 [수정] space-y-8을 space-y-5로 변경하여 요소들 사이의 간격을 좁혔습니다. */}

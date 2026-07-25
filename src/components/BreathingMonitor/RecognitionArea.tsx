@@ -2,9 +2,10 @@ import { useEffect, useRef } from 'react';
 
 interface RecognitionAreaProps {
   videoStream: MediaStream | null; // 부모로부터 스트림을 받습니다.
+  isFaceDetected: boolean;
 }
 
-const RecognitionArea: React.FC<RecognitionAreaProps> = ({ videoStream }) => {
+const RecognitionArea: React.FC<RecognitionAreaProps> = ({ videoStream, isFaceDetected }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
@@ -15,7 +16,11 @@ const RecognitionArea: React.FC<RecognitionAreaProps> = ({ videoStream }) => {
 
   return (
     <section className="relative mb-6">
-      <div className="relative w-56 h-56 mx-auto overflow-hidden rounded-3xl border-4 border-[#45947D] shadow-2xl shadow-[#6BE6C1]/20">
+      <div
+        className={`relative w-56 h-56 mx-auto overflow-hidden rounded-3xl border-[3px] transition-colors duration-300 ${
+          isFaceDetected ? 'border-[#6BE6C1]' : 'border-red-200 dark:border-red-400/40'
+        }`}
+      >
         <video
           ref={videoRef}
           autoPlay
@@ -23,13 +28,14 @@ const RecognitionArea: React.FC<RecognitionAreaProps> = ({ videoStream }) => {
           muted
           className="w-full h-full object-cover"
         />
-
-
-        <div className="absolute inset-4 border-2 border-[#45947D]/40 rounded-2xl"></div>
       </div>
 
-      <p className="text-center text-xs mt-4 text-[#45947D] dark:text-[#6BE6C1] font-semibold tracking-wide">
-        안면 인식 유지 중...
+      <p
+        className={`text-center text-xs mt-4 font-semibold tracking-wide ${
+          isFaceDetected ? 'text-[#1E8F6B] dark:text-primary' : 'text-red-500 dark:text-red-400'
+        }`}
+      >
+        {isFaceDetected ? '✓ 안면 인식 중' : '✕ 얼굴을 프레임 안에 맞춰주세요'}
       </p>
     </section>
   );

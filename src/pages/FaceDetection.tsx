@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Check } from 'lucide-react';
 
 import CameraFrame from '../components/FaceDetection/CameraFrame';
 import Header from '../components/Header';
-import ProgressCircle from '../components/FaceDetection/ProgressCircle';
 import { startMeditation } from '../api/meditation';
 
 const FaceDetection: React.FC = () => {
@@ -71,6 +71,13 @@ const FaceDetection: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    // 카메라 스트림이 없거나 에러가 있으면 감지를 진행하지 않는다.
+    // (기존엔 카메라 성공 여부와 무관하게 무조건 진행률이 100%까지 올라가서,
+    //  "카메라를 시작하지 못했습니다" 에러와 "얼굴 감지 완료"가 동시에 뜨는 모순이 있었다.)
+    if (!stream || error) {
+      return;
+    }
+
     if (progress >= 100) {
       setIsDetected(true);
       return;
@@ -84,7 +91,7 @@ const FaceDetection: React.FC = () => {
     }, 50);
 
     return () => clearInterval(interval);
-  }, [progress]);
+  }, [progress, stream, error]);
 
   const handleBack = () => {
     navigate(-1);
@@ -128,32 +135,49 @@ const FaceDetection: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-[100svh] w-full max-w-md mx-auto flex flex-col items-center overflow-hidden">
+    <div className="relative min-h-[100svh] w-full max-w-md mx-auto bg-[#FAF9F5] dark:bg-[#14161C] flex flex-col items-center overflow-hidden">
       <Header
-        title="Face Detection"
+        title="얼굴 인식"
         onBack={handleBack}
         rightType="text"
-        rightText="Cancel"
+        rightText="취소"
         onRightClick={handleCancel}
       />
 
       <main className="flex-1 flex flex-col items-center px-5 pb-6 w-full relative z-10 overflow-y-auto hide-scrollbar">
         <div className="w-full text-center mt-2 mb-5">
           <h2 className="text-lg font-bold text-[#0F172A] dark:text-[#F5F3EF] leading-snug mb-2">
-            명상 전에 카메라를 확인하고
+            카메라를 확인하고 얼굴을
             <br />
-            얼굴이 프레임 안에 들어오게 맞춰주세요
+            프레임 안에 맞춰주세요
           </h2>
           <p className="text-xs text-[#6B7280]">
-            정확한 측정을 위해 정면을 바라보고 움직임을 최소화해주세요.
+            정면을 바라보고 움직임을 최소화해주세요
           </p>
         </div>
 
-        <div className="w-64 aspect-[3.5/4.5] mx-auto mb-5 rounded-2xl overflow-hidden">
-          <CameraFrame stream={stream} />
+        <div className="relative w-64 aspect-[3.5/4.5] mx-auto mb-4">
+          <div
+            className={`w-full h-full rounded-2xl overflow-hidden border-[3px] transition-colors duration-300 ${
+              isDetected ? 'border-[#6BE6C1]' : 'border-gray-200 dark:border-white/15'
+            }`}
+          >
+            <CameraFrame stream={stream} />
+          </div>
+          {isDetected && (
+            <div className="absolute -bottom-3.5 -right-3.5 w-11 h-11 rounded-full bg-[#6BE6C1] flex items-center justify-center shadow-md">
+              <Check size={20} className="text-[#14161C]" strokeWidth={2.5} />
+            </div>
+          )}
         </div>
 
-        <ProgressCircle percentage={Math.round(progress)} />
+        <p
+          className={`text-center text-sm font-medium mb-5 ${
+            isDetected ? 'text-[#1E8F6B] dark:text-primary' : 'text-gray-400 dark:text-white/40'
+          }`}
+        >
+          {isDetected ? '얼굴 감지 완료' : `${Math.round(progress)}%`}
+        </p>
 
         {error && (
           <div className="w-full mt-5 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
@@ -162,7 +186,7 @@ const FaceDetection: React.FC = () => {
         )}
 
         {isDetected && (
-          <div className="w-full mt-5 space-y-3">
+          <div className="w-full space-y-3">
             <button
               onClick={handleStartMeditation}
               disabled={isLoading}

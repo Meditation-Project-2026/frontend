@@ -12,7 +12,6 @@ import RecognitionArea from '../components/BreathingMonitor/RecognitionArea';
 import ConnectionStatus from '../components/BreathingMonitor/ConnectionStatus';
 import MeditationTimer from '../components/BreathingMonitor/MeditationTimer';
 import BiometricCards from '../components/BreathingMonitor/BiometricCards';
-import FaceStatus from '../components/BreathingMonitor/FaceStatus';
 import EndMeditationButton from '../components/BreathingMonitor/EndMeditationButton';
 
 interface BiometricData {
@@ -209,10 +208,10 @@ const BreathingMonitor: React.FC = () => {
   };
 
   return (
-    <div className="h-[100svh] bg-[#F8FAF8] dark:bg-[#14161C] flex flex-col overflow-hidden">
+    <div className="h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] flex flex-col overflow-hidden">
       <Header title="명상 모니터링" onBack={() => navigate(-1)} />
 
-      <main className="flex-1 flex flex-col px-5 pt-2 pb-5 max-w-2xl mx-auto w-full overflow-y-auto hide-scrollbar justify-between">
+      <main className="flex-1 flex flex-col gap-4 px-5 pt-2 pb-5 max-w-2xl mx-auto w-full overflow-y-auto hide-scrollbar">
         <video ref={videoRef} autoPlay playsInline muted className="hidden" width="640" height="480" />
         <canvas ref={canvasRef} className="hidden" width="72" height="72" />
 
@@ -227,15 +226,17 @@ const BreathingMonitor: React.FC = () => {
 
           <MeditationTimer time={formatTime(meditationTime)} />
 
-          <RecognitionArea videoStream={stream} />
+          <RecognitionArea videoStream={stream} isFaceDetected={biometricData.isFaceDetected} />
 
           <BiometricCards heartRate={biometricData.heartRate} lfHfRatio={biometricData.lfHfRatio} />
         </div>
 
-        <div className="space-y-3 w-full mt-auto">
-          <FaceStatus isFaceDetected={biometricData.isFaceDetected} />
-
-          <EndMeditationButton isRunning={isRunning} onClick={handleEndMeditation} />
+        <div className="space-y-3 w-full">
+          <EndMeditationButton
+            isRunning={isRunning}
+            isFaceDetected={biometricData.isFaceDetected}
+            onClick={handleEndMeditation}
+          />
         </div>
       </main>
     </div>
