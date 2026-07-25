@@ -9,7 +9,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { to: '/', label: '홈', Icon: Home, end: true },
+  { to: '/home', label: '홈', Icon: Home, end: true },
   { to: '/contents', label: '콘텐츠', Icon: Leaf },
   { to: '/upload', label: '업로드', Icon: PlusCircle },
   { to: '/profile', label: '프로필', Icon: User },

@@ -40,23 +40,23 @@ interface RecentMeditationsProps {
 const defaultItems: MeditationItem[] = [
   {
     id: 1,
-    title: '10분 아침 명상',
+    title: '아침을 시작하는 긍정 명상',
     duration: '10 min',
     tag: '음성 가이드',
-    imageUrl:
-        '/images/medi4.jpg'  },
+    imageUrl: '/images/medi4.jpg',
+  },
   {
-    id: 2,
-    title: '깊은 수면을 위한 소리',
+    id: 4,
+    title: '집중력 향상 사운드스케이프',
     duration: '25 min',
     tag: '명상 음악',
-    imageUrl:
-        '/images/medi5.jpg'  },
+    imageUrl: '/images/medi5.jpg',
+  },
   {
-    id: 3,
-    title: '숲속의 아침',
+    id: 2,
+    title: '깊은 잠을 위한 수면 유도',
     duration: '15 min',
-    tag: '힐링 사운드',
+    tag: '명상 음악',
     imageUrl:
         '/images/medi6.jpg'  },
 ];

@@ -7,10 +7,13 @@ import { connectRPPGStream, sendFrameToWebSocket } from '../api/meditation';
 // 📂 하위 컴포넌트들의 실제 경로에 맞게 /BreathingGuide/ 폴더 경로 추가
 import Header from '../components/BreathingGuide/Header';
 import BreathingCircle from '../components/BreathingGuide/BreathingCircle';
+import BreathingPrep from '../components/BreathingGuide/BreathingPrep';
+import PreBreathCountdown from '../components/BreathingGuide/PreBreathCountdown';
 import StatusCards from '../components/BreathingGuide/StatusCards';
 import CameraFrame from '../components/BreathingGuide/CameraFrame';
 import MeditationTimer from '../components/BreathingMonitor/MeditationTimer';
 import ConnectionStatus from '../components/BreathingMonitor/ConnectionStatus';
+import EndMeditationButton from '../components/BreathingMonitor/EndMeditationButton';
 import { saveMeditationRecord } from '../api/meditation';
 
 interface BiometricData {
@@ -32,6 +35,8 @@ const BreathingGuide: React.FC = () => {
   });
   const [meditationTime, setMeditationTime] = useState<number>(0);
   const [isRunning, setIsRunning] = useState<boolean>(true);
+  const [hasStarted, setHasStarted] = useState<boolean>(false);
+  const [countdownDone, setCountdownDone] = useState<boolean>(false);
   const [isConnected, setIsConnected] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -76,9 +81,9 @@ const BreathingGuide: React.FC = () => {
     };
   }, []);
 
-  // 2. 명상 타이머 작동
+  // 2. 명상 타이머 작동 (준비 화면을 마쳐야 시작)
   useEffect(() => {
-    if (!isRunning) return;
+    if (!isRunning || !hasStarted || !countdownDone) return;
     timerRef.current = setInterval(() => {
       setMeditationTime((prev) => prev + 1);
     }, 1000);
@@ -86,7 +91,7 @@ const BreathingGuide: React.FC = () => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isRunning]);
+  }, [isRunning, hasStarted, countdownDone]);
 
   // 캡슐화된 카메라 정리 함수
   const stopCameraNow = () => {
@@ -237,34 +242,44 @@ const BreathingGuide: React.FC = () => {
       {/* 상단 헤더 */}
       <Header title="호흡 모니터링" onBack={() => navigate(-1)} />
 
-      {/* 우측 상단 미니 웹캠 칸 (이제 앱 상자 내부 우측 상단에 똑바로 박힙니다) */}
-      <div className="absolute top-24 right-6 w-20 h-28 rounded-2xl overflow-hidden border-2 border-white dark:border-slate-700 shadow-lg z-20 bg-black">
-        <CameraFrame stream={stream} />
-      </div>
+      {/* 우측 상단 미니 웹캠 칸 - 준비 단계에서는 숨김 */}
+      {hasStarted && (
+        <div className="absolute top-24 right-6 w-20 h-28 rounded-2xl overflow-hidden border-2 border-white dark:border-slate-700 shadow-lg z-20 bg-black">
+          <CameraFrame stream={stream} />
+        </div>
+      )}
 
       {/* 메인 콘텐츠 영역 */}
       <main className="flex-1 flex flex-col gap-4 px-5 pt-4 pb-5 w-full overflow-y-auto hide-scrollbar">
-        <div>
-          {/* 웹소켓 연결 상태 */}
-          <ConnectionStatus isConnected={isConnected} />
+        {!hasStarted ? (
+          <BreathingPrep onStart={() => setHasStarted(true)} />
+        ) : (
+          <>
+            <div>
+              {/* 웹소켓 연결 상태 */}
+              <ConnectionStatus isConnected={isConnected} />
 
-          {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg text-sm">{error}</div>}
+              {error && <div className="mb-4 p-4 bg-red-100 text-red-700 rounded-lg text-sm">{error}</div>}
 
-          {/* 타이머 */}
-          <MeditationTimer time={formatTime(meditationTime)} />
+              {/* 타이머 */}
+              <MeditationTimer time={formatTime(meditationTime)} />
 
-          {/* 원형 애니메이션 호흡 가이드 컴포넌트 */}
-          <BreathingCircle />
+              {/* 원형 애니메이션 호흡 가이드 컴포넌트 (먼저 3-2-1, 끝나면 실제 호흡 애니메이션) */}
+              {!countdownDone ? (
+                <PreBreathCountdown onComplete={() => setCountdownDone(true)} />
+              ) : (
+                <BreathingCircle />
+              )}
 
-          {/* 실시간 생체 데이터 카드 */}
-          <StatusCards heartRate={biometricData.heartRate} lfHfRatio={biometricData.lfHfRatio} />
-        </div>
+              {/* 실시간 생체 데이터 카드 */}
+              <StatusCards heartRate={biometricData.heartRate} lfHfRatio={biometricData.lfHfRatio} />
+            </div>
 
-        {/* 하단 인터랙션 영역 */}
-        <div className="space-y-3 w-full">
-          {/* 실시간 얼굴 감지 상태창 */}
-          <div
-            className={`w-full py-3.5 px-5 rounded-2xl border-2 bg-white text-center font-bold text-base shadow-sm transition-all duration-300 ${
+            {/* 하단 인터랙션 영역 */}
+            <div className="space-y-3 w-full">
+              {/* 실시간 얼굴 감지 상태창 */}
+              <div
+                className={`w-full py-3 px-4 rounded-2xl border-2 bg-white dark:bg-[#1E212B] text-center font-bold text-sm shadow-sm transition-all duration-300 ${
               biometricData.isFaceDetected
                 ? 'border-[#45947D] text-[#45947D]'
                 : 'border-red-200 text-red-500'
@@ -278,13 +293,14 @@ const BreathingGuide: React.FC = () => {
           </div>
 
           {/* 명상 종료 버튼 */}
-          <button
+          <EndMeditationButton
+            isRunning={isRunning}
+            isFaceDetected={biometricData.isFaceDetected}
             onClick={handleEndMeditation}
-            className="w-full py-4 rounded-2xl bg-[#6BE6C1] text-[#0F172A] font-bold text-lg shadow-sm active:scale-[0.98] transition-transform"
-          >
-            명상 종료하기
-          </button>
+          />
         </div>
+          </>
+        )}
       </main>
     </div>
   );

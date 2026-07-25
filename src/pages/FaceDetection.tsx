@@ -97,12 +97,6 @@ const FaceDetection: React.FC = () => {
     navigate(-1);
   };
 
-  const handleCancel = () => {
-    setProgress(0);
-    setIsDetected(false);
-    setError(null);
-  };
-
   const handleStartMeditation = async () => {
     if (!meditationId) {
       setError('명상 ID가 없습니다.');
@@ -135,13 +129,11 @@ const FaceDetection: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-[100svh] w-full max-w-md mx-auto bg-[#FAF9F5] dark:bg-[#14161C] flex flex-col items-center overflow-hidden">
+    <div className="relative min-h-[100svh] w-full bg-[#FAF9F5] dark:bg-[#14161C] flex flex-col items-center overflow-hidden">
       <Header
         title="얼굴 인식"
         onBack={handleBack}
-        rightType="text"
-        rightText="취소"
-        onRightClick={handleCancel}
+        rightType="none"
       />
 
       <main className="flex-1 flex flex-col items-center px-5 pb-6 w-full relative z-10 overflow-y-auto hide-scrollbar">
@@ -172,34 +164,37 @@ const FaceDetection: React.FC = () => {
         </div>
 
         <p
-          className={`text-center text-sm font-medium mb-5 ${
+          className={`text-center text-sm font-medium ${
             isDetected ? 'text-[#1E8F6B] dark:text-primary' : 'text-gray-400 dark:text-white/40'
           }`}
         >
           {isDetected ? '얼굴 감지 완료' : `${Math.round(progress)}%`}
         </p>
 
-        {error && (
-          <div className="w-full mt-5 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
+        {/* 버튼 그룹만 화면 하단으로 배치 */}
+        <div className="w-full mt-auto space-y-5">
+          {error && (
+            <div className="w-full p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
 
-        {isDetected && (
-          <div className="w-full space-y-3">
-            <button
-              onClick={handleStartMeditation}
-              disabled={isLoading}
-              className={`w-full py-4 px-4 rounded-2xl font-bold text-lg transition-all ${
-                isLoading
-                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                  : 'bg-[#6BE6C1] text-[#0F172A] hover:bg-[#5FD4A3] active:scale-95'
-              }`}
-            >
-              {isLoading ? '명상 시작 중...' : '명상 시작하기'}
-            </button>
-          </div>
-        )}
+          {isDetected && (
+            <div className="w-full space-y-3">
+              <button
+                onClick={handleStartMeditation}
+                disabled={isLoading}
+                className={`w-full py-4 px-4 rounded-2xl font-bold text-lg transition-all ${
+                  isLoading
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-[#6BE6C1] text-[#0F172A] hover:bg-[#5FD4A3] active:scale-95'
+                }`}
+              >
+                {isLoading ? '명상 시작 중...' : '명상 시작하기'}
+              </button>
+            </div>
+          )}
+        </div>
       </main>
     </div>
   );

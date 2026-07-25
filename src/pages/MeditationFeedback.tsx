@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { ChevronRight } from 'lucide-react';
 import type { MeditationFeedbackResponse } from '../api/meditation';
 import Header from "../components/Header";
-import { FeedbackCard } from "../components/MeditationFeedback/FeedbackCard";
 import { getMeditationFeedback, updateUserNote } from '../api/meditation';
+import { MEDITATION_CONTENTS } from '../data/meditationContents';
 
 interface FeedbackState {
   data: MeditationFeedbackResponse | null;
@@ -13,18 +14,21 @@ interface FeedbackState {
 
 // 디자인 확인용 목데이터. 실제 백엔드에 없는 logId로는 화면을 볼 수 없어서 추가함.
 // /meditation-feedback?preview=1 로 접속하면 API 호출 없이 이 데이터로 바로 렌더링됨.
+// resultStatus를 FAILURE로 둬서 "추천 명상" 섹션(실패 시에만 노출)도 미리 확인할 수 있게 함.
 const MOCK_FEEDBACK: MeditationFeedbackResponse = {
   meditationDate: new Date().toISOString(),
   title: '10분 아침 명상',
   totalDuration: '612',
   lfhf: { start: 1.62, end: 0.84, changeRate: -48.1 },
   heartRate: { start: 78, end: 66, diff: -12 },
-  resultStatus: 'SUCCESS',
+  resultStatus: 'FAILURE',
   userNote: null,
-  recommendedMeditations: [
-    { id: 1, title: '깊은 잠을 위한 수면 유도', backgroundUrl: '/images/medi5.jpg' },
-    { id: 2, title: '숲속의 아침', backgroundUrl: '/images/medi6.jpg' },
-  ],
+  // 기존 콘텐츠(콘텐츠 탭과 동일한 데이터)를 그대로 추천 목록으로 사용
+  recommendedMeditations: MEDITATION_CONTENTS.slice(1, 3).map((c) => ({
+    id: c.id,
+    title: c.title,
+    backgroundUrl: c.imageUrl,
+  })),
 };
 
 export default function FeedbackPage() {
@@ -87,9 +91,8 @@ export default function FeedbackPage() {
   // 💾 사용자 노트 저장 및 홈 이동 로직
   const handleSaveNote = async () => {
     if (isPreview) {
-      // 미리보기 모드에서는 실제 저장 없이 UI만 확인
-      setSaveMessage({ type: 'success', text: '(미리보기) 메모가 저장된 것처럼 표시됩니다' });
-      setTimeout(() => setSaveMessage(null), 1500);
+      // 미리보기 모드에서는 실제 저장 API가 없으니 그냥 홈으로 이동만
+      navigate('/home');
       return;
     }
 
@@ -111,7 +114,7 @@ export default function FeedbackPage() {
 
       setTimeout(() => {
         setSaveMessage(null);
-        navigate('/');
+        navigate('/home');
       }, 1500);
     } catch (err) {
       console.error('Failed to save note:', err);
@@ -147,7 +150,7 @@ export default function FeedbackPage() {
   // 로딩 중 (디자인 수정 버전)
   if (feedback.loading) {
     return (
-      <div className="min-h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
+      <div className="h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
         <Header title="명상 피드백" onBack={() => navigate(-1)} />
         <div className="flex-1 flex flex-col items-center justify-center pb-20 overflow-y-auto hide-scrollbar">
           <div className="text-center">
@@ -164,7 +167,7 @@ export default function FeedbackPage() {
   // 에러 발생
   if (feedback.error || !feedback.data) {
     return (
-      <div className="min-h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
+      <div className="h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
         <Header title="명상 피드백" onBack={() => navigate(-1)} />
         <main className="flex-1 flex items-center justify-center px-6 overflow-y-auto hide-scrollbar">
           <div className="text-center">
@@ -184,12 +187,9 @@ export default function FeedbackPage() {
   const { data } = feedback;
   const isSuccess = data.resultStatus === 'SUCCESS';
 
-  const lfhfStart = data.lfhf.start !== null && data.lfhf.start !== undefined ? Number(data.lfhf.start.toFixed(2)) : 0;
   const lfhfEnd = data.lfhf.end !== null && data.lfhf.end !== undefined ? Number(data.lfhf.end.toFixed(2)) : 0;
   const lfhfChange = data.lfhf.changeRate !== null && data.lfhf.changeRate !== undefined ? Number(data.lfhf.changeRate.toFixed(1)) : 0;
-  const hrStart = data.heartRate.start !== null && data.heartRate.start !== undefined ? Math.round(data.heartRate.start) : 0;
   const hrEnd = data.heartRate.end !== null && data.heartRate.end !== undefined ? Math.round(data.heartRate.end) : 0;
-  const hrChange = data.heartRate.diff !== null && data.heartRate.diff !== undefined ? Math.round(data.heartRate.diff) : 0;
 
   let resultText = '';
   if (lfhfChange !== 0 && !isNaN(Number(lfhfChange))) {
@@ -214,7 +214,7 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="min-h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
+    <div className="h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
       <Header title="명상 피드백" onBack={() => navigate(-1)} />
 
       {/* 🚀 [수정] space-y-8을 space-y-5로 변경하여 요소들 사이의 간격을 좁혔습니다. */}
@@ -264,44 +264,42 @@ export default function FeedbackPage() {
           {resultText}
         </div>
 
-        {/* 4. 실시간 생체 데이터 피드백 카드 */}
-        <FeedbackCard
-          title="LF/HF 변화"
-          value={lfhfEnd}
-          unit="ratio"
-          change={`${lfhfChange !== 0 ? Math.abs(Number(lfhfChange)).toFixed(1) : 0}%`}
-          start={{ val: lfhfStart, percent: `${lfhfStart !== 0 ? Math.min(lfhfStart * 30, 100) : 0}%` }}
-          end={{ val: lfhfEnd, percent: `${lfhfEnd !== 0 ? Math.min(lfhfEnd * 30, 100) : 0}%` }}
-        />
-
-        <FeedbackCard
-          title="심박수 변화"
-          value={hrEnd}
-          unit="BPM"
-          change={`${hrChange !== 0 ? Math.abs(Number(hrChange)) : 0}bpm`}
-          start={{ val: hrStart, percent: `${hrStart !== 0 ? Math.min((hrStart / 120) * 100, 100) : 0}%` }}
-          end={{ val: hrEnd, percent: `${hrEnd !== 0 ? Math.min((hrEnd / 120) * 100, 100) : 0}%` }}
-        />
+        {/* 4. 최종 생체 데이터 카드 */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-2xl p-4">
+            <p className="text-xs text-gray-400 dark:text-white/50 mb-1">최종 심박수</p>
+            <p className="text-2xl font-bold text-[#191B1F] dark:text-[#F5F3EF]">
+              {hrEnd || '-'} <span className="text-xs font-medium text-gray-400 dark:text-white/40">BPM</span>
+            </p>
+          </div>
+          <div className="bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-2xl p-4">
+            <p className="text-xs text-gray-400 dark:text-white/50 mb-1">최종 스트레스 지수</p>
+            <p className="text-2xl font-bold text-[#191B1F] dark:text-[#F5F3EF]">{lfhfEnd || '-'}</p>
+          </div>
+        </div>
 
         {/* 5. 추천 명상 섹션 (실패 시에만 출력) */}
         {!isSuccess && data.recommendedMeditations.length > 0 && (
-          <div className="space-y-4">
-            <h3 className="text-lg font-bold text-[#0F172A] dark:text-[#F5F3EF]">추천 명상</h3>
-            <div className="space-y-3">
+          <div>
+            <h3 className="text-base font-bold text-[#191B1F] dark:text-[#F5F3EF] mb-3">추천 명상</h3>
+            <div className="flex flex-col gap-2.5">
               {data.recommendedMeditations.map((meditation) => (
-                <div
+                <button
                   key={meditation.id}
-                  className="p-4 bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-2xl shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => navigate(`/face-detection?id=${meditation.id}&type=full`)}
+                  className="w-full flex items-center gap-3 p-3 bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-2xl text-left active:scale-[0.98] transition-transform"
                 >
                   {meditation.backgroundUrl && (
-                    <img
-                      src={meditation.backgroundUrl}
-                      alt={meditation.title}
-                      className="w-full h-32 object-cover rounded-lg mb-3"
+                    <div
+                      className="w-14 h-14 rounded-xl bg-cover bg-center shrink-0"
+                      style={{ backgroundImage: `url(${meditation.backgroundUrl})` }}
                     />
                   )}
-                  <p className="font-bold text-[#0F172A] dark:text-[#F5F3EF]">{meditation.title}</p>
-                </div>
+                  <p className="flex-1 min-w-0 text-sm font-bold text-[#191B1F] dark:text-[#F5F3EF] truncate">
+                    {meditation.title}
+                  </p>
+                  <ChevronRight size={16} className="text-gray-300 dark:text-white/30 shrink-0" />
+                </button>
               ))}
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Heart, Waves } from 'lucide-react';
 
 import type { RPPGStreamMessage } from '../api/meditation';
 
@@ -9,10 +10,6 @@ import {
 } from '../api/meditation';
 
 import Header from '../components/BreathingGuide/Header';
-import BreathingCircle from '../components/BreathingGuide/BreathingCircle';
-import BreathingPrep from '../components/BreathingGuide/BreathingPrep';
-import PreBreathCountdown from '../components/BreathingGuide/PreBreathCountdown';
-import StatusCards from '../components/BreathingGuide/StatusCards';
 import SessionPlayer from '../components/BreathingGuide/SessionPlayer';
 import ConnectionStatus from '../components/BreathingMonitor/ConnectionStatus';
 import MeditationTimer from '../components/BreathingMonitor/MeditationTimer';
@@ -25,7 +22,9 @@ interface BiometricData {
   isFaceDetected: boolean;
 }
 
-const BreathingFull: React.FC = () => {
+// BreathingFull.tsx와 거의 동일하지만 호흡 가이드 원(BreathingCircle)이 없는 버전.
+// 콘텐츠(음성/음악)만 재생하면서 생체 데이터만 측정하고 싶을 때 사용 (호흡 페이싱 가이드 없음).
+const BreathingContent: React.FC = () => {
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -42,8 +41,6 @@ const BreathingFull: React.FC = () => {
 
   const [meditationTime, setMeditationTime] = useState<number>(0);
   const [isRunning, setIsRunning] = useState<boolean>(true);
-  const [hasStarted, setHasStarted] = useState<boolean>(false);
-  const [countdownDone, setCountdownDone] = useState<boolean>(false);
 
   const [isConnected, setIsConnected] =
     useState(false);
@@ -64,9 +61,9 @@ const BreathingFull: React.FC = () => {
   const canvasRef =
     useRef<HTMLCanvasElement | null>(null);
 
-  // 명상 타이머 작동 (준비 화면을 마쳐야 시작)
+  // 명상 타이머 작동
   useEffect(() => {
-    if (!isRunning || !hasStarted || !countdownDone) return;
+    if (!isRunning) return;
     timerRef.current = setInterval(() => {
       setMeditationTime((prev) => prev + 1);
     }, 1000);
@@ -74,7 +71,7 @@ const BreathingFull: React.FC = () => {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isRunning, hasStarted, countdownDone]);
+  }, [isRunning]);
 
   // 카메라 초기화
   useEffect(() => {
@@ -263,57 +260,82 @@ const BreathingFull: React.FC = () => {
       />
 
       {/* 헤더 */}
-      <Header title="통합 모드" />
+      <Header title="콘텐츠 재생" />
 
-      {hasStarted && (
-        <div className="absolute top-24 right-6 w-20 h-28 rounded-2xl overflow-hidden border-2 border-white dark:border-slate-700 shadow-lg z-20 bg-black">
-          <CameraFrame stream={stream} />
-        </div>
-      )}
+      {/* 우측 상단 미니 웹캠 칸 - BreathingGuide/BreathingFull과 동일 */}
+      <div className="absolute top-24 right-6 w-20 h-28 rounded-2xl overflow-hidden border-2 border-white dark:border-slate-700 shadow-lg z-20 bg-black">
+        <CameraFrame stream={stream} />
+      </div>
 
       <main className="flex-1 flex flex-col px-5 pt-4 pb-5 w-full overflow-y-auto hide-scrollbar">
-        {!hasStarted ? (
-          <BreathingPrep onStart={() => setHasStarted(true)} />
-        ) : (
-          <div>
-            <ConnectionStatus isConnected={isConnected} />
+        <div>
+          {/* 웹소켓 연결 상태 */}
+          <ConnectionStatus isConnected={isConnected} />
 
-            {/* 에러 */}
-            {error && (
-              <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
-                {error}
+          {/* 에러 */}
+          {error && (
+            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* 명상 시간 */}
+          <MeditationTimer time={formatTime(meditationTime)} />
+
+          {/* 호흡 가이드 원 없음 - 콘텐츠(음성/음악)만 재생하며 생체 데이터만 측정 */}
+
+          {/* 실시간 생체 측정 패널 (지어낸 기능 없이 실제 측정값만, 기존 카드 스타일에 맞춤) */}
+          {/* mt-12: 우측 상단 카메라(absolute, top-24 + h-28 = 하단 약 208px)와 겹치지 않도록 충분한 여백 확보 */}
+          <div className="bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-2xl mt-12 mb-5 shadow-sm overflow-hidden">
+            <div className="flex">
+              <div className="flex-1 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Heart size={16} className="text-[#45947D]" />
+                  <span className="text-xs font-bold text-[#45947D] uppercase tracking-tight">심박수</span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold text-[#191B1F] dark:text-[#F5F3EF]">
+                    {biometricData.heartRate || '-'}
+                  </span>
+                  <span className="text-xs font-medium text-slate-400">bpm</span>
+                </div>
               </div>
+
+              <div className="w-px bg-gray-100 dark:bg-white/10 my-4" />
+
+              <div className="flex-1 p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Waves size={16} className="text-[#45947D]" />
+                  <span className="text-xs font-bold text-[#45947D] uppercase tracking-tight">스트레스 지수</span>
+                </div>
+                <div className="flex items-baseline gap-1">
+                  <span className="text-2xl font-bold text-[#191B1F] dark:text-[#F5F3EF]">
+                    {biometricData.lfHfRatio || '-'}
+                  </span>
+                  <span className="text-xs font-medium text-slate-400">ratio</span>
+                </div>
+              </div>
+            </div>
+
+            {!biometricData.isFaceDetected && (
+              <p className="text-xs text-gray-300 dark:text-white/30 text-center pb-3">
+                얼굴을 프레임 안에 맞추면 측정이 시작돼요
+              </p>
             )}
-
-            {/* 명상 시간 */}
-            <MeditationTimer time={formatTime(meditationTime)} />
-
-            {/* 호흡 원 (먼저 3-2-1, 끝나면 실제 호흡 애니메이션) */}
-            {!countdownDone ? (
-              <PreBreathCountdown onComplete={() => setCountdownDone(true)} />
-            ) : (
-              <BreathingCircle />
-            )}
-
-            {/* 상태 카드 */}
-            <StatusCards
-              heartRate={biometricData.heartRate}
-              lfHfRatio={biometricData.lfHfRatio}
-            />
-
-            {/* 명상 종료 버튼 */}
-            <EndMeditationButton
-              isRunning={isRunning}
-              isFaceDetected={biometricData.isFaceDetected}
-              onClick={handleEndMeditation}
-            />
           </div>
-        )}
+
+          {/* 명상 종료 버튼 */}
+          <EndMeditationButton
+            isRunning={isRunning}
+            isFaceDetected={biometricData.isFaceDetected}
+            onClick={handleEndMeditation}
+          />
+        </div>
       </main>
 
-      {hasStarted && <SessionPlayer />}
+      <SessionPlayer />
     </div>
   );
 };
 
-export default BreathingFull;
+export default BreathingContent;
