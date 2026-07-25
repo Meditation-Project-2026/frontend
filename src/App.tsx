@@ -10,6 +10,7 @@ import MeditationFeedback from './pages/MeditationFeedback';
 import Home from './pages/Home';
 import BreathingGuide from './pages/BreathingGuide';
 import BreathingFull from './pages/BreathingFull';
+import BreathingContent from './pages/BreathingContent';
 import Contents from './pages/Contents';
 import ContentDetail from './pages/ContentDetail';
 import Upload from './pages/Upload';
@@ -22,7 +23,7 @@ function App() {
         <BrowserRouter>
           <LogIdProvider>
             <div className="App">
-              <div className="max-w-md mx-auto min-h-screen shadow-2xl bg-white dark:bg-[#14161C] dark:border-x dark:border-white/[0.06]">
+              <div className="max-w-[390px] mx-auto min-h-screen shadow-2xl bg-white dark:bg-[#14161C] dark:border-x dark:border-white/[0.06]">
                 <Routes>
                   {/* 시작 화면: 로그인 */}
                   <Route path="/" element={<Login />} />
@@ -41,6 +42,7 @@ function App() {
                   <Route path="/breathing-monitor" element={<BreathingMonitor />} />
                   <Route path="/breathing-guide" element={<BreathingGuide />} />
                   <Route path="/breathing-full" element={<BreathingFull />} />
+                  <Route path="/breathing-content" element={<BreathingContent />} />
                   <Route path="/meditation-feedback" element={<MeditationFeedback />} />
                 </Routes>
               </div>

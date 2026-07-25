@@ -67,7 +67,7 @@ const Profile: React.FC = () => {
 
   return (
     <PageContainer className="pb-6">
-      <ProfileHeader nickname="사용자 닉네임" />
+      <ProfileHeader nickname="세린님" />
       <StatsCards stats={MOCK_STATS} />
       <MeditationCalendar
         year={year}

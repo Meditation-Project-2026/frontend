@@ -129,7 +129,7 @@ const FaceDetection: React.FC = () => {
   };
 
   return (
-    <div className="relative min-h-[100svh] w-full max-w-md mx-auto bg-[#FAF9F5] dark:bg-[#14161C] flex flex-col items-center overflow-hidden">
+    <div className="relative min-h-[100svh] w-full bg-[#FAF9F5] dark:bg-[#14161C] flex flex-col items-center overflow-hidden">
       <Header
         title="얼굴 인식"
         onBack={handleBack}
