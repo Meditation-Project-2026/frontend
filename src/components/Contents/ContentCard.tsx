@@ -13,12 +13,12 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, onClick }) => {
   return (
     <button
       onClick={() => onClick?.(content.id)}
-      className="w-full flex items-start justify-between gap-3 bg-white border border-gray-100
+      className="w-full flex items-start justify-between gap-3 bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07]
                  rounded-2xl p-4 text-left"
     >
       <div className="min-w-0">
-        <p className="text-sm font-bold text-accent leading-snug mb-2">{content.title}</p>
-        <p className="text-xs text-gray-400">
+        <p className="text-sm font-bold text-accent dark:text-[#F5F3EF] leading-snug mb-2">{content.title}</p>
+        <p className="text-xs text-gray-400 dark:text-[#F5F3EF]/40">
           {content.minutes} min · by {content.author}
         </p>
       </div>

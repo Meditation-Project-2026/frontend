@@ -31,22 +31,22 @@ const MeditationCalendar: React.FC<MeditationCalendarProps> = ({
   while (cells.length % 7 !== 0) cells.push(null);
 
   return (
-    <div className="mx-5 mt-5 bg-white border border-gray-100 rounded-2xl p-4">
-      <div className="flex items-center justify-between mb-4 text-sm font-bold text-accent">
-        <button onClick={onPrevMonth} aria-label="이전 달" className="text-gray-400">
+    <div className="mx-5 mt-5 bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-2xl p-4">
+      <div className="flex items-center justify-between mb-4 text-sm font-bold text-accent dark:text-[#F5F3EF]">
+        <button onClick={onPrevMonth} aria-label="이전 달" className="text-gray-400 dark:text-[#F5F3EF]/40">
           <ChevronLeft size={16} />
         </button>
         <span>
           {year}년 {month}월
         </span>
-        <button onClick={onNextMonth} aria-label="다음 달" className="text-gray-400">
+        <button onClick={onNextMonth} aria-label="다음 달" className="text-gray-400 dark:text-[#F5F3EF]/40">
           <ChevronRight size={16} />
         </button>
       </div>
 
       <div className="grid grid-cols-7 gap-y-1.5">
         {WEEKDAY_LABELS.map((label, i) => (
-          <span key={`${label}-${i}`} className="text-center text-[10px] text-gray-400 pb-1">
+          <span key={`${label}-${i}`} className="text-center text-[10px] text-gray-400 dark:text-[#F5F3EF]/40 pb-1">
             {label}
           </span>
         ))}
@@ -64,7 +64,7 @@ const MeditationCalendar: React.FC<MeditationCalendarProps> = ({
                   ? 'invisible'
                   : isSelected
                   ? 'bg-primary text-accent font-bold'
-                  : 'text-accent'
+                  : 'text-accent dark:text-[#F5F3EF]'
               }`}
             >
               {day}

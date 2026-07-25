@@ -12,6 +12,7 @@ import Header from '../components/BreathingGuide/Header';
 import BreathingCircle from '../components/BreathingGuide/BreathingCircle';
 import StatusCards from '../components/BreathingGuide/StatusCards';
 import SessionPlayer from '../components/BreathingGuide/SessionPlayer';
+import ConnectionStatus from '../components/BreathingMonitor/ConnectionStatus';
 import CameraFrame from '../components/BreathingGuide/CameraFrame';
 
 interface BiometricData {
@@ -40,6 +41,9 @@ const BreathingFull: React.FC = () => {
   const [error, setError] =
     useState<string | null>(null);
 
+  const [stream, setStream] =
+    useState<MediaStream | null>(null);
+
   // refs
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -67,6 +71,7 @@ const BreathingFull: React.FC = () => {
           videoRef.current.srcObject =
             mediaStream;
         }
+        setStream(mediaStream);
       } catch (err) {
         console.error(err);
 
@@ -179,7 +184,7 @@ const BreathingFull: React.FC = () => {
   }, [logId]);
 
   return (
-    <div className="min-h-[100svh] bg-[#F6F8FA] dark:bg-[#0F172A] flex flex-col relative overflow-hidden">
+    <div className="h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] flex flex-col relative overflow-hidden">
 
       {/* 숨겨진 video/canvas */}
       <video
@@ -198,69 +203,35 @@ const BreathingFull: React.FC = () => {
       />
 
       {/* 헤더 */}
-      <Header />
+      <Header title="통합 모드" />
 
-      <div
-        className="
-          absolute
-          top-24
-          right-6
-          w-20
-          h-28
-          rounded-2xl
-          overflow-hidden
-          border-2
-          border-white
-          dark:border-slate-700
-          shadow-lg
-          z-20
-          bg-black
-        "
-      >
-        <CameraFrame />
+      <div className="absolute top-24 right-6 w-20 h-28 rounded-2xl overflow-hidden border-2 border-white dark:border-slate-700 shadow-lg z-20 bg-black">
+        <CameraFrame stream={stream} />
       </div>
 
-      <main className="flex-1 overflow-y-auto hide-scrollbar flex flex-col justify-center px-5 pb-6">
+      <main className="flex-1 flex flex-col px-5 pt-4 pb-5 w-full overflow-y-auto hide-scrollbar">
+        <div>
+          <ConnectionStatus isConnected={isConnected} />
 
-        {/* 연결 상태 */}
-        <div className="mb-4 flex items-center gap-2 justify-center">
-          <div
-            className={`w-3 h-3 rounded-full ${
-              isConnected
-                ? 'bg-green-500 animate-pulse'
-                : 'bg-red-500'
-            }`}
+          {/* 에러 */}
+          {error && (
+            <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+              {error}
+            </div>
+          )}
+
+          {/* 호흡 원 */}
+          <BreathingCircle />
+
+          {/* 상태 카드 */}
+          <StatusCards
+            heartRate={biometricData.heartRate}
+            lfHfRatio={biometricData.lfHfRatio}
           />
-
-          <span className="text-sm text-[#45947D] font-medium">
-            {isConnected
-              ? 'WebSocket 연결됨'
-              : 'WebSocket 연결 중...'}
-          </span>
         </div>
-
-        {/* 에러 */}
-        {error && (
-          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* 호흡 원 */}
-        <BreathingCircle />
-
-        {/* 상태 카드 */}
-        <StatusCards
-          heartRate={biometricData.heartRate}
-          lfHfRatio={biometricData.lfHfRatio}
-        />
-
       </main>
 
-      
-
       <SessionPlayer />
-      
     </div>
   );
 };

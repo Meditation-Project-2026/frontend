@@ -47,33 +47,33 @@ const Upload: React.FC = () => {
           <button
             onClick={() => navigate(-1)}
             aria-label="뒤로가기"
-            className="w-8 h-8 rounded-full border border-gray-100 flex items-center justify-center text-accent"
+            className="w-8 h-8 rounded-full border border-gray-100 dark:border-white/[0.07] flex items-center justify-center text-accent dark:text-[#F5F3EF]"
           >
             <ArrowLeft size={17} />
           </button>
-          <h1 className="text-base font-bold text-accent">새 명상 콘텐츠 업로드</h1>
+          <h1 className="text-base font-bold text-accent dark:text-[#F5F3EF]">새 명상 콘텐츠 업로드</h1>
         </div>
 
         <StepProgress totalSteps={4} currentStep={1} />
 
         <div className="px-5 flex flex-col gap-8 pb-10">
           <section>
-            <p className="text-sm font-bold text-accent mb-3">1단계: 콘텐츠 타입 선택</p>
+            <p className="text-sm font-bold text-accent dark:text-[#F5F3EF] mb-3">1단계: 콘텐츠 타입 선택</p>
             <ContentTypeToggle value={contentType} onChange={setContentType} />
           </section>
 
           <section>
-            <p className="text-sm font-bold text-accent mb-3">2단계: 오디오 파일 업로드</p>
+            <p className="text-sm font-bold text-accent dark:text-[#F5F3EF] mb-3">2단계: 오디오 파일 업로드</p>
             <AudioUploadBox file={audioFile} onFileSelect={setAudioFile} />
           </section>
 
           <section>
-            <p className="text-sm font-bold text-accent mb-3">3단계: 배경 선택</p>
+            <p className="text-sm font-bold text-accent dark:text-[#F5F3EF] mb-3">3단계: 배경 선택</p>
             <BackgroundPicker selected={background} onSelect={setBackground} />
           </section>
 
           <section>
-            <p className="text-sm font-bold text-accent mb-3">4단계: 정보 입력</p>
+            <p className="text-sm font-bold text-accent dark:text-[#F5F3EF] mb-3">4단계: 정보 입력</p>
             <MetadataForm
               title={title}
               onTitleChange={setTitle}

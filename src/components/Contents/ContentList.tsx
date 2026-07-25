@@ -8,7 +8,7 @@ interface ContentListProps {
 
 const ContentList: React.FC<ContentListProps> = ({ items, onItemClick }) => {
   if (items.length === 0) {
-    return <p className="px-5 py-10 text-center text-sm text-gray-400">조건에 맞는 콘텐츠가 없어요.</p>;
+    return <p className="px-5 py-10 text-center text-sm text-gray-400 dark:text-[#F5F3EF]/40">조건에 맞는 콘텐츠가 없어요.</p>;
   }
 
   return (

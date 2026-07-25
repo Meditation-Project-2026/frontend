@@ -25,7 +25,7 @@ const ProgressCircle: React.FC<ProgressCircleProps> = ({ percentage }) => {
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center flex-col">
-          <span className="text-sm font-bold text-[#1A4D43] dark:text-white">{percentage}%</span>
+          <span className="text-sm font-bold text-[#191B1F] dark:text-[#F5F3EF]">{percentage}%</span>
         </div>
       </div>
       <p className="text-[#45947D] dark:text-[#6BE6C1] font-medium text-base animate-pulse">

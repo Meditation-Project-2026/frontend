@@ -18,7 +18,7 @@ const NAV_ITEMS: NavItem[] = [
 const BottomNav: React.FC = () => {
   return (
     <nav
-      className="shrink-0 bg-white dark:bg-accent border-t border-gray-100 dark:border-white/10
+      className="shrink-0 bg-white dark:bg-[#14161C] border-t border-gray-100 dark:border-white/[0.07]
                  flex items-stretch px-2 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]"
     >
       {NAV_ITEMS.map(({ to, label, Icon, end }) => (
@@ -28,7 +28,7 @@ const BottomNav: React.FC = () => {
           end={end}
           className={({ isActive }) =>
             `flex-1 flex flex-col items-center gap-1 py-1 text-[11px] font-semibold transition-colors ${
-              isActive ? 'text-secondary dark:text-primary' : 'text-gray-400 dark:text-white/40'
+              isActive ? 'text-secondary dark:text-primary' : 'text-gray-400 dark:text-[#F5F3EF]/40'
             }`
           }
         >

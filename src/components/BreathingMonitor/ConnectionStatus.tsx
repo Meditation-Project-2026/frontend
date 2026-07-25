@@ -2,24 +2,23 @@ interface ConnectionStatusProps {
   isConnected: boolean;
 }
 
-const ConnectionStatus: React.FC<ConnectionStatusProps> = ({
-  isConnected,
-}) => {
+const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ isConnected }) => {
   return (
-    <div className="mb-4 flex items-center gap-2 justify-center">
+    <div className="mb-4 flex justify-center">
       <div
-        className={`w-3 h-3 rounded-full ${
-          isConnected
-            ? 'bg-green-500 animate-pulse'
-            : 'bg-red-500'
+        className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 ${
+          isConnected ? 'bg-green-500/10' : 'bg-red-500/10'
         }`}
-      />
-
-      <span className="text-sm text-[#45947D] font-medium">
-        {isConnected
-          ? 'WebSocket 연결됨'
-          : 'WebSocket 연결 중...'}
-      </span>
+      >
+        <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+        <span
+          className={`text-xs font-medium ${
+            isConnected ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+          }`}
+        >
+          {isConnected ? 'WebSocket 연결됨' : 'WebSocket 연결 중'}
+        </span>
+      </div>
     </div>
   );
 };

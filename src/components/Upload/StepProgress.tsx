@@ -9,7 +9,7 @@ const StepProgress: React.FC<StepProgressProps> = ({ totalSteps, currentStep }) 
       {Array.from({ length: totalSteps }, (_, i) => i + 1).map((step) => (
         <span
           key={step}
-          className={`h-1 flex-1 rounded-full ${step <= currentStep ? 'bg-primary' : 'bg-gray-200'}`}
+          className={`h-1 flex-1 rounded-full ${step <= currentStep ? 'bg-primary' : 'bg-gray-200 dark:bg-[#1E212B]'}`}
         />
       ))}
     </div>

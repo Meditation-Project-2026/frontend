@@ -16,8 +16,8 @@ const BackgroundPicker: React.FC<BackgroundPickerProps> = ({ selected, onSelect,
       <button
         type="button"
         onClick={onUploadOwn}
-        className="shrink-0 w-[84px] h-[84px] rounded-2xl border border-dashed border-gray-300
-                   bg-white flex flex-col items-center justify-center gap-1.5 text-gray-400 text-center px-1"
+        className="shrink-0 w-[84px] h-[84px] rounded-2xl border border-dashed border-gray-300 dark:border-white/[0.12]
+                   bg-white dark:bg-[#1E212B] flex flex-col items-center justify-center gap-1.5 text-gray-400 dark:text-[#F5F3EF]/40 text-center px-1"
       >
         <ImageIcon size={16} />
         <span className="text-[10px] font-semibold leading-tight">내 파일에서 업로드</span>
