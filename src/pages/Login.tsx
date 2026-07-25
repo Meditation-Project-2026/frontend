@@ -14,7 +14,7 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="h-[100svh] w-full max-w-[390px] mx-auto bg-[#FAF9F5] dark:bg-[#14161C] flex flex-col justify-center overflow-hidden px-6">
+    <div className="h-[100svh] w-full bg-[#FAF9F5] dark:bg-[#14161C] flex flex-col justify-center overflow-hidden px-6">
       <div className="mb-10 text-center">
         <div className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center mx-auto mb-4">
           <span className="text-3xl">🧘</span>
@@ -65,6 +65,14 @@ const Login: React.FC = () => {
           className="w-full py-4 rounded-2xl font-bold text-base bg-primary text-accent active:scale-[0.98] transition-all mt-2"
         >
           로그인
+        </button>
+
+        {/* 회원가입: 버튼만 존재, 별도 화면 구현은 하지 않음 */}
+        <button
+          type="button"
+          className="w-full py-3 text-sm font-semibold text-gray-400 dark:text-white/50"
+        >
+          계정이 없으신가요? <span className="text-accent dark:text-primary font-bold">회원가입</span>
         </button>
       </form>
     </div>

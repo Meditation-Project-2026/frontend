@@ -3,32 +3,31 @@ import { useNavigate } from 'react-router-dom';
 import SearchFilterBar, { type ContentFilter } from '../components/Contents/SearchFilterBar';
 import ContentList from '../components/Contents/ContentList';
 import PageContainer from '../components/Layout/PageContainer';
-import type { MeditationContent } from '../types/content';
-
-// TODO: api/meditation.ts 의 getContents() 로 교체
-const MOCK_CONTENTS: MeditationContent[] = [
-  { id: 1, title: '아침을 시작하는 긍정 명상', minutes: 10, author: '평온한마음', likes: 1200, theme: 'sunrise' },
-  { id: 2, title: '깊은 잠을 위한 수면 유도', minutes: 15, author: '고요의숲', likes: 986, theme: 'night' },
-  { id: 3, title: '스트레스 해소를 위한 호흡', minutes: 5, author: '숨쉬는순간', likes: 812, theme: 'ocean' },
-  { id: 4, title: '집중력 향상 사운드스케이프', minutes: 25, author: '사운드테라피', likes: 750, theme: 'forest' },
-];
+import { useContents } from '../contexts/ContentsContext';
 
 const Contents: React.FC = () => {
   const navigate = useNavigate();
+  const { contents } = useContents();
   const [query, setQuery] = useState('');
-  const [filter, setFilter] = useState<ContentFilter>('popular');
+  const [filter, setFilter] = useState<ContentFilter>('all');
   const [showModal, setShowModal] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
   const filteredItems = useMemo(() => {
-    let items = MOCK_CONTENTS.filter((item) => item.title.includes(query) || item.author.includes(query));
+    let items = contents.filter((item) => item.title.includes(query) || item.author.includes(query));
     if (filter === 'popular') {
       items = [...items].sort((a, b) => b.likes - a.likes);
     }
     return items;
-  }, [query, filter]);
+  }, [contents, query, filter]);
 
   const handleContentClick = (id: number) => {
+    const target = contents.find((item) => item.id === id);
+    if (target?.isUploaded) {
+      // 업로드한 콘텐츠는 상세 화면으로
+      navigate(`/content-detail?id=${id}`);
+      return;
+    }
     setSelectedId(id);
     setShowModal(true);
   };

@@ -163,16 +163,16 @@ const FaceDetection: React.FC = () => {
           )}
         </div>
 
-        {/* 진행률/버튼 그룹을 화면 하단으로 배치 */}
-        <div className="w-full mt-auto space-y-5">
-          <p
-            className={`text-center text-sm font-medium ${
-              isDetected ? 'text-[#1E8F6B] dark:text-primary' : 'text-gray-400 dark:text-white/40'
-            }`}
-          >
-            {isDetected ? '얼굴 감지 완료' : `${Math.round(progress)}%`}
-          </p>
+        <p
+          className={`text-center text-sm font-medium ${
+            isDetected ? 'text-[#1E8F6B] dark:text-primary' : 'text-gray-400 dark:text-white/40'
+          }`}
+        >
+          {isDetected ? '얼굴 감지 완료' : `${Math.round(progress)}%`}
+        </p>
 
+        {/* 버튼 그룹만 화면 하단으로 배치 */}
+        <div className="w-full mt-auto space-y-5">
           {error && (
             <div className="w-full p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
               {error}

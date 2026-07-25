@@ -1,12 +1,11 @@
-export type ThumbnailTheme = 'sunrise' | 'night' | 'ocean' | 'forest';
-
 export interface MeditationContent {
   id: number;
   title: string;
   minutes: number;
   author: string;
   likes: number;
-  theme: ThumbnailTheme;
+  imageUrl: string;
+  tag: string;
 }
 
 export interface DaySession {
