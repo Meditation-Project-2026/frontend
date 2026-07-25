@@ -111,7 +111,7 @@ export default function FeedbackPage() {
 
       setTimeout(() => {
         setSaveMessage(null);
-        navigate('/');
+        navigate('/home');
       }, 1500);
     } catch (err) {
       console.error('Failed to save note:', err);

@@ -9,8 +9,6 @@ import type { DaySession, ProfileStats } from '../types/content';
 
 // TODO: api/meditation.ts 의 getProfile() / getSessionsByMonth() 로 교체
 const MOCK_STATS: ProfileStats = {
-  followers: 128,
-  following: 256,
   totalSessions: 150,
   longestStreakDays: 30,
   totalMinutes: 25 * 60 + 10,
@@ -69,7 +67,7 @@ const Profile: React.FC = () => {
 
   return (
     <PageContainer className="pb-6">
-      <ProfileHeader nickname="세린님" followers={MOCK_STATS.followers} following={MOCK_STATS.following} />
+      <ProfileHeader nickname="사용자 닉네임" />
       <StatsCards stats={MOCK_STATS} />
       <MeditationCalendar
         year={year}

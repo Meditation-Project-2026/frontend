@@ -17,8 +17,6 @@ export interface DaySession {
 }
 
 export interface ProfileStats {
-  followers: number;
-  following: number;
   totalSessions: number;
   longestStreakDays: number;
   totalMinutes: number;

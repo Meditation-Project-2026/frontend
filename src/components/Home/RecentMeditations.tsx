@@ -56,7 +56,7 @@ const defaultItems: MeditationItem[] = [
     id: 3,
     title: '숲속의 아침',
     duration: '15 min',
-    tag: '힐링 사운드',
+    tag: '명상 음악',
     imageUrl:
         '/images/medi6.jpg'  },
 ];

@@ -53,7 +53,7 @@ const FavoriteContents: React.FC<FavoriteContentsProps> = ({
   return (
     <section className="px-5 space-y-3">
       <div className="flex justify-between items-center">
-        <h2 className="font-bold text-lg tracking-tight">즐겨찾기한 콘텐츠</h2>
+        <h2 className="font-bold text-lg tracking-tight">좋아요한 콘텐츠</h2>
         <button onClick={onMoreClick}>
              {/* 🚀 text-[#45947D] 클래스를 추가하여 초록색으로 변경 */}
              <span className="material-symbols-outlined text-base text-[#45947D]">chevron_right</span>
