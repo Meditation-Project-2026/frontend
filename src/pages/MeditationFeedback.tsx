@@ -220,16 +220,24 @@ export default function FeedbackPage() {
   const isStressDecreased = lfhfEnd < lfhfStart; // 스트레스 지수(LF/HF)가 낮아졌으면 이완 성공
   const isSuccess = hasLfhfValue ? isStressDecreased : data.resultStatus === 'SUCCESS';
 
+  // 🎯 결과 텍스트 및 배경 색상 분기 보정
   let resultText = '';
+  let resultColor = '';
+
   if (hasLfhfValue) {
-    resultText = isStressDecreased
-      ? '깊은 이완 상태에 도달하셨습니다.\n심신이 안정된 상태입니다.'
-      : '명상 중 잡념이 많으셨나요?\n호흡에 조금 더 집중해보세요.';
+    if (isStressDecreased) {
+      resultText = '깊은 이완 상태에 도달하셨습니다.\n심신이 안정된 상태입니다.';
+      resultColor = 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+    } else {
+      resultText = '명상 중 잡념이 많으셨나요?\n호흡에 조금 더 집중해보세요.';
+      resultColor = 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'; // 👈 증가 시 주황/경고 색상
+    }
   } else {
     resultText = isSuccess ? '깊은 이완 상태에 도달하셨습니다.\n심신이 안정된 상태입니다.' : '명상 미완성';
+    resultColor = isSuccess
+      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+      : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
   }
-
-  let resultColor = 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
 
   return (
     <div className="h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
