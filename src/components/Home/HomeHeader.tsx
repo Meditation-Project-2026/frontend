@@ -5,7 +5,7 @@ interface HomeHeaderProps {
 
 const HomeHeader: React.FC<HomeHeaderProps> = ({
   greeting = '좋은 저녁이에요',
-  userName = '재석님',
+  userName = 'BioCalm',
 }) => {
   return (
     <header className="pt-6 px-5 pb-5 flex justify-between items-center">

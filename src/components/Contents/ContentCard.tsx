@@ -4,9 +4,10 @@ import type { MeditationContent } from '../../types/content';
 interface ContentCardProps {
   content: MeditationContent;
   onClick?: (id: number) => void;
+  onLikeToggle?: (id: number) => void;
 }
 
-const ContentCard: React.FC<ContentCardProps> = ({ content, onClick }) => {
+const ContentCard: React.FC<ContentCardProps> = ({ content, onClick, onLikeToggle }) => {
   return (
     <button
       onClick={() => onClick?.(content.id)}
@@ -25,8 +26,20 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, onClick }) => {
           className="w-[76px] h-[76px] rounded-2xl bg-cover bg-center"
           style={{ backgroundImage: `url(${content.imageUrl})` }}
         />
-        <span className="flex items-center gap-1 bg-black/30 border border-white/20 rounded-full px-2.5 py-1 text-[11px] font-bold text-primary">
-          <Heart size={11} strokeWidth={0} fill="currentColor" />
+        <span
+          role="button"
+          aria-label={content.isLiked ? '좋아요 취소' : '좋아요'}
+          onClick={(e) => {
+            e.stopPropagation();
+            onLikeToggle?.(content.id);
+          }}
+          className={`flex items-center gap-1 border rounded-full px-2.5 py-1 text-[11px] font-bold transition-colors ${
+            content.isLiked
+              ? 'bg-black/30 border-white/20 text-primary'
+              : 'bg-black/10 border-white/10 text-white/50'
+          }`}
+        >
+          <Heart size={11} strokeWidth={content.isLiked ? 0 : 2} fill={content.isLiked ? 'currentColor' : 'none'} />
           {content.likes}
         </span>
       </div>

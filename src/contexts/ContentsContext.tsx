@@ -17,6 +17,7 @@ interface AddContentInput {
 interface ContentsContextType {
   contents: UploadedContent[];
   addContent: (input: AddContentInput) => number;
+  toggleLike: (id: number) => void;
 }
 
 const ContentsContext = createContext<ContentsContextType | undefined>(undefined);
@@ -31,6 +32,8 @@ export const useContents = () => {
 let nextUploadedId = 1000;
 
 export const ContentsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  // 좋아요 상태를 홈/콘텐츠 화면이 같이 보고 바꿀 수 있도록 base 콘텐츠도 state로 관리한다.
+  const [baseContents, setBaseContents] = useState<UploadedContent[]>(MEDITATION_CONTENTS);
   const [uploadedContents, setUploadedContents] = useState<UploadedContent[]>([]);
 
   const addContent = ({ title, description, imageUrl, audioUrl }: AddContentInput): number => {
@@ -43,6 +46,7 @@ export const ContentsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       imageUrl,
       tag: '내가 업로드',
       likes: 0,
+      isLiked: false,
       description,
       audioUrl,
       isUploaded: true,
@@ -52,10 +56,20 @@ export const ContentsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return id;
   };
 
-  const contents: UploadedContent[] = [...uploadedContents, ...MEDITATION_CONTENTS];
+  const toggleLike = (id: number) => {
+    const updater = (item: UploadedContent) =>
+      item.id === id
+        ? { ...item, isLiked: !item.isLiked, likes: item.isLiked ? Math.max(0, item.likes - 1) : item.likes + 1 }
+        : item;
+
+    setBaseContents((prev) => prev.map(updater));
+    setUploadedContents((prev) => prev.map(updater));
+  };
+
+  const contents: UploadedContent[] = [...uploadedContents, ...baseContents];
 
   return (
-    <ContentsContext.Provider value={{ contents, addContent }}>
+    <ContentsContext.Provider value={{ contents, addContent, toggleLike }}>
       {children}
     </ContentsContext.Provider>
   );

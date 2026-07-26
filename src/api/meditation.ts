@@ -172,13 +172,15 @@ export const getMeditationFeedback = async (logId: number): Promise<MeditationFe
 export interface UpdateUserNoteRequest {
   logId: number;
   userNote: string;
+  // TODO: 백엔드가 이 필드를 지원해야 실제로 제목이 저장됨. 아직 미지원이면 무시됨.
+  title?: string;
 }
 
 export const updateUserNote = async (data: UpdateUserNoteRequest): Promise<{ status: string }> => {
   try {
     const response = await api.patch<{ status: string }>(
       `/main/records/${data.logId}`,
-      { userNote: data.userNote }
+      { userNote: data.userNote, ...(data.title ? { title: data.title } : {}) }
     );
     return response.data;
   } catch (error) {

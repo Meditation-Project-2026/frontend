@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Pencil } from 'lucide-react';
 import type { MeditationFeedbackResponse } from '../api/meditation';
 import Header from "../components/Header";
 import { FeedbackCard } from "../components/MeditationFeedback/FeedbackCard";
@@ -47,13 +47,19 @@ export default function FeedbackPage() {
   const [userNote, setUserNote] = useState<string>('');
   const [isSaving, setIsSaving] = useState<boolean>(false);
   const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [editableTitle, setEditableTitle] = useState<string>('');
+  const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
 
   // 📊 피드백 데이터 로드 및 폴링 로직 구현
   useEffect(() => {
     if (isPreview) {
       // 목데이터로 즉시 렌더링 (API 호출 없음)
-      setFeedback({ data: MOCK_FEEDBACK, loading: false, error: null });
+      // ?title=콘텐츠제목 으로 넘어온 경우 그 제목을 그대로 반영 (실제로는 logId 기준으로 서버가 내려주는 값)
+      const titleParam = searchParams.get('title');
+      const previewData = titleParam ? { ...MOCK_FEEDBACK, title: titleParam } : MOCK_FEEDBACK;
+      setFeedback({ data: previewData, loading: false, error: null });
       setUserNote(MOCK_FEEDBACK.userNote || '');
+      setEditableTitle(previewData.title);
       return;
     }
 
@@ -71,6 +77,7 @@ export default function FeedbackPage() {
         } else {
           setFeedback({ data, loading: false, error: null });
           setUserNote(data.userNote || '');
+          setEditableTitle(data.title);
         }
       } catch (err) {
         console.error('Failed to load feedback:', err);
@@ -106,6 +113,7 @@ export default function FeedbackPage() {
       await updateUserNote({
         logId: parseInt(logId),
         userNote: userNote,
+        title: editableTitle,
       });
 
       setSaveMessage({
@@ -229,9 +237,28 @@ export default function FeedbackPage() {
             <span>날짜</span>
             <span className="text-[#0F172A] dark:text-[#F5F3EF] font-medium">{formatDate(data.meditationDate)}</span>
           </div>
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <span>명상</span>
-            <span className="text-[#0F172A] dark:text-[#F5F3EF] font-medium">{data.title}</span>
+            {isEditingTitle ? (
+              <input
+                autoFocus
+                value={editableTitle}
+                onChange={(e) => setEditableTitle(e.target.value)}
+                onBlur={() => setIsEditingTitle(false)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') setIsEditingTitle(false);
+                }}
+                className="text-right bg-transparent border-b border-primary text-[#0F172A] dark:text-[#F5F3EF] font-medium outline-none max-w-[60%]"
+              />
+            ) : (
+              <button
+                onClick={() => setIsEditingTitle(true)}
+                className="flex items-center gap-1.5 text-[#0F172A] dark:text-[#F5F3EF] font-medium"
+              >
+                {editableTitle || data.title}
+                <Pencil size={12} className="text-gray-300 dark:text-white/30" />
+              </button>
+            )}
           </div>
           <div className="flex justify-between">
             <span>총 시간</span>
@@ -282,16 +309,7 @@ export default function FeedbackPage() {
           </div>
         </div>
 
-        {/* 4-1. 전후 비교 카드 (요청에 따라 최종값 카드와 함께 유지) */}
-        <FeedbackCard
-          title="스트레스 지수 변화"
-          value={lfhfEnd}
-          unit="ratio"
-          change={`${lfhfChange !== 0 ? Math.abs(Number(lfhfChange)).toFixed(1) : 0}%`}
-          start={{ val: lfhfStart, percent: `${lfhfStart !== 0 ? Math.min(lfhfStart * 30, 100) : 0}%` }}
-          end={{ val: lfhfEnd, percent: `${lfhfEnd !== 0 ? Math.min(lfhfEnd * 30, 100) : 0}%` }}
-        />
-
+        {/* 4-1. 전후 비교 카드 (요청에 따라 최종값 카드와 함께 유지, 심박수를 먼저) */}
         <FeedbackCard
           title="심박수 변화"
           value={hrEnd}
@@ -299,6 +317,15 @@ export default function FeedbackPage() {
           change={`${hrChange !== 0 ? Math.abs(Number(hrChange)) : 0}bpm`}
           start={{ val: hrStart, percent: `${hrStart !== 0 ? Math.min((hrStart / 120) * 100, 100) : 0}%` }}
           end={{ val: hrEnd, percent: `${hrEnd !== 0 ? Math.min((hrEnd / 120) * 100, 100) : 0}%` }}
+        />
+
+        <FeedbackCard
+          title="스트레스 지수 변화"
+          value={lfhfEnd}
+          unit="ratio"
+          change={`${lfhfChange !== 0 ? Math.abs(Number(lfhfChange)).toFixed(1) : 0}%`}
+          start={{ val: lfhfStart, percent: `${lfhfStart !== 0 ? Math.min(lfhfStart * 30, 100) : 0}%` }}
+          end={{ val: lfhfEnd, percent: `${lfhfEnd !== 0 ? Math.min(lfhfEnd * 30, 100) : 0}%` }}
         />
 
         {/* 5. 추천 명상 섹션 (실패 시에만 출력) */}

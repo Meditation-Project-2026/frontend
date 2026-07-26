@@ -5,6 +5,7 @@ import RecentMeditations from '../components/Home/RecentMeditations';
 import FavoriteContents from '../components/Home/FavoriteContents';
 import ActionButtons from '../components/Home/ActionButtons';
 import PageContainer from '../components/Layout/PageContainer';
+import { useContents } from '../contexts/ContentsContext';
 import { useState } from 'react';
 
 // 임시 meditationId (실제로는 선택한 콘텐츠 ID를 전달)
@@ -12,6 +13,10 @@ const DEFAULT_MEDITATION_ID = 1;
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const { contents } = useContents();
+  const likedItems = contents
+    .filter((c) => c.isLiked)
+    .map((c) => ({ id: c.id, title: c.title, imageUrl: c.imageUrl }));
 
   const [showModal, setShowModal] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -47,7 +52,7 @@ const Home: React.FC = () => {
   return (
     <PageContainer className="relative pb-6">
       {/* 헤더 */}
-      <HomeHeader greeting="좋은 저녁이에요" userName="세린님" />
+      <HomeHeader greeting="좋은 저녁이에요" userName="BioCalm" />
 
       {/* 검색 바 */}
       <SearchBar />
@@ -62,6 +67,7 @@ const Home: React.FC = () => {
 
         {/* 즐겨찾기한 콘텐츠 */}
         <FavoriteContents
+          items={likedItems}
           onItemClick={(item) => handleContentClick(item.id)}
         />
 
