@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import type { RPPGStreamMessage } from '../api/meditation';
 import { connectRPPGStream, sendFrameToWebSocket } from '../api/meditation';
 
 import Header from '../components/BreathingGuide/Header';

@@ -11,9 +11,9 @@ import { useSessions, toDateKey } from '../contexts/SessionsContext';
 
 // TODO: api/meditation.ts 의 getProfile() 로 교체
 const MOCK_STATS: ProfileStats = {
-  totalSessions: 150,
-  longestStreakDays: 30,
-  totalMinutes: 25 * 60 + 10,
+  totalSessions: 4,
+  longestStreakDays: 1,
+  totalMinutes: 0 * 60 + 21,
 };
 
 const WEEKDAY_KOR = ['일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일'];
