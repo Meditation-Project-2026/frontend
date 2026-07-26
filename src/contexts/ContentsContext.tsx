@@ -44,7 +44,7 @@ export const ContentsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       id,
       title,
       minutes,
-      author: '나',
+      author: 'BioCalm',
       imageUrl,
       tag,
       likes: 0,

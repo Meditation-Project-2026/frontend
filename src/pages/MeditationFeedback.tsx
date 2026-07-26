@@ -6,7 +6,7 @@ import Header from "../components/Header";
 import StatComparisonCard from "../components/MeditationFeedback/StatComparisonCard";
 import { getMeditationFeedback, updateUserNote } from '../api/meditation';
 import { MEDITATION_CONTENTS } from '../data/meditationContents';
-import { useSessions } from '../contexts/SessionsContext';
+import { useSessions, toDateKey } from '../contexts/SessionsContext';
 
 interface FeedbackState {
   data: MeditationFeedbackResponse | null;
@@ -23,7 +23,7 @@ const MOCK_FEEDBACK: MeditationFeedbackResponse = {
   totalDuration: '301',
   lfhf: { start: 2.64, end: 0.72, changeRate: 73.0 },
   heartRate: { start: 63, end: 49, diff: 14 },
-  resultStatus: 'SUCCESS',
+  resultStatus: 'FAILURE',
   userNote: null,
   // 기존 콘텐츠(콘텐츠 탭과 동일한 데이터)를 그대로 추천 목록으로 사용
   recommendedMeditations: MEDITATION_CONTENTS.slice(1, 3).map((c) => ({
@@ -58,7 +58,10 @@ export default function FeedbackPage() {
   // 📊 피드백 데이터 로드 및 폴링 로직 구현
   useEffect(() => {
     // 1. localStorage에 저장된 기록이 있으면 우선 복원
-    const savedLocal = localStorage.getItem('savedRecord_latest');
+    // logId가 있으면 해당 기록 전용 키를 사용해서, 프로필 캘린더에서 서로 다른 날짜를
+    // 다시 눌렀을 때 항상 최신 기록이 아니라 그 날짜에 저장했던 기록이 열리도록 한다.
+    const localKey = logId ? `savedRecord_${logId}` : 'savedRecord_latest';
+    const savedLocal = localStorage.getItem(localKey);
     let localData: MeditationFeedbackResponse | null = null;
     if (savedLocal) {
       try {
@@ -68,8 +71,26 @@ export default function FeedbackPage() {
 
     if (isPreview) {
       const titleParam = searchParams.get('title');
+      // ?result=success 또는 ?result=fail 로 더미 데이터 수정 없이 성공/실패 화면을 바로 전환해서 볼 수 있음
+      // 예) /meditation-feedback?preview=1&result=fail
+      const resultParam = searchParams.get('result');
       const baseData = localData || MOCK_FEEDBACK;
-      const previewData = titleParam ? { ...baseData, title: titleParam } : baseData;
+      let previewData = titleParam ? { ...baseData, title: titleParam } : baseData;
+
+      if (resultParam === 'fail') {
+        previewData = {
+          ...previewData,
+          resultStatus: 'FAILURE',
+          lfhf: { start: 0.72, end: 2.64, changeRate: 73.0 }, // 스트레스 지수 증가 → 실패
+        };
+      } else if (resultParam === 'success') {
+        previewData = {
+          ...previewData,
+          resultStatus: 'SUCCESS',
+          lfhf: { start: 2.64, end: 0.72, changeRate: 73.0 }, // 스트레스 지수 감소 → 성공
+        };
+      }
+
       setFeedback({ data: previewData, loading: false, error: null });
       setUserNote(previewData.userNote || '');
       setEditableTitle(previewData.title);
@@ -112,25 +133,47 @@ export default function FeedbackPage() {
     };
   }, [logId, isPreview]);
 
+  // 시:분을 "오전/오후 H:MM" 형식으로 변환
+  const formatTimeLabel = (date: Date): string => {
+    const hours24 = date.getHours();
+    const period = hours24 < 12 ? '오전' : '오후';
+    const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${period} ${hours12}:${minutes}`;
+  };
+
   // 💾 사용자 노트 저장
   const handleSaveNote = async () => {
     setIsSaving(true);
     setSaveMessage(null);
 
     const currentTitle = editableTitle || feedback.data?.title || '오늘의 힐링 명상';
+    const now = new Date();
+    // logId가 없는 미리보기 상황에서도 기록을 구분해서 저장할 수 있도록 임시 id 발급
+    const effectiveLogId = logId ? parseInt(logId) : Date.now();
+    const dateKey = toDateKey(now);
 
     const recordToSave = {
       ...feedback.data,
       title: currentTitle,
       userNote: userNote,
-      time: '오후 7:23',
-      date: '2026-07-26',
-      day: 26,
-      logId: logId || '172',
+      time: formatTimeLabel(now),
+      date: dateKey,
+      day: now.getDate(),
+      logId: effectiveLogId,
     };
 
+    // 기록은 logId별로 저장해서, 서로 다른 날짜/기록을 다시 열어도 각각의 내용이 보이도록 한다.
+    localStorage.setItem(`savedRecord_${effectiveLogId}`, JSON.stringify(recordToSave));
     localStorage.setItem('savedRecord_latest', JSON.stringify(recordToSave));
-    localStorage.setItem('savedRecord_2026-07-26', JSON.stringify(recordToSave));
+
+    // 📅 프로필 캘린더에 저장 기록을 반영 (해당 날짜에 표시되고, 다시 눌러서 열람 가능)
+    addSession(now, {
+      title: currentTitle,
+      time: formatTimeLabel(now),
+      note: userNote,
+      logId: effectiveLogId,
+    });
 
     if (logId) {
       updateUserNote({
@@ -220,6 +263,12 @@ export default function FeedbackPage() {
   const isStressDecreased = lfhfEnd < lfhfStart; // 스트레스 지수(LF/HF)가 낮아졌으면 이완 성공
   const isSuccess = hasLfhfValue ? isStressDecreased : data.resultStatus === 'SUCCESS';
 
+  // 하단 "추천 명상" 섹션은 화면에 보여지는 성공/실패 판정(isSuccess)과
+  // 반드시 일치해야 하므로, 별도의 백엔드 resultStatus가 아니라 isSuccess를 그대로 사용한다.
+  // (resultStatus만 보고 판단하면, 화면엔 "성공"으로 보이는데도 추천 명상이 뜨는
+  //  불일치가 생길 수 있음)
+  const isFailure = !isSuccess;
+
   // 🎯 결과 텍스트 및 배경 색상 분기 보정
   let resultText = '';
   let resultColor = '';
@@ -289,6 +338,7 @@ export default function FeedbackPage() {
             type="text"
             value={userNote}
             onChange={(e) => setUserNote(e.target.value)}
+            readOnly={isReadOnly}
             placeholder={isReadOnly ? "작성된 메모가 없습니다." : "오늘 명상은 어땠나요?"}
             className={`w-full border border-gray-100 dark:border-white/[0.07] rounded-xl px-4 py-3 text-sm shadow-sm focus:outline-none ${
               isReadOnly
@@ -331,8 +381,8 @@ export default function FeedbackPage() {
           isImprovement={isStressDecreased}
         />
 
-        {/* 5. 추천 명상 섹션 (실패 시에만 출력) */}
-        {!isSuccess && data.recommendedMeditations.length > 0 && (
+        {/* 5. 추천 명상 섹션 (실제 명상 실패 시에만 출력, 저장된 기록 조회 화면에서는 표시하지 않음) */}
+        {!isReadOnly && isFailure && data.recommendedMeditations.length > 0 && (
           <div>
             <h3 className="text-base font-bold text-[#191B1F] dark:text-[#F5F3EF] mb-3">추천 명상</h3>
             <div className="flex flex-col gap-2.5">
@@ -358,18 +408,27 @@ export default function FeedbackPage() {
           </div>
         )}
 
-        {/* 6. 저장하기 버튼 */}
-        <button
-          onClick={handleSaveNote}
-          disabled={isSaving}
-          className={`w-full py-4 rounded-2xl font-bold text-base shadow-sm active:scale-[0.98] transition-all !mt-8 ${
-            isSaving
-              ? 'bg-gray-300 dark:bg-[#1E212B] text-gray-500 dark:text-[#F5F3EF]/30 cursor-not-allowed'
-              : 'bg-[#6BE6C1] text-[#0F172A] hover:bg-[#5FD4A3]'
-          }`}
-        >
-          {isSaving ? '저장 중...' : isSuccess ? '저장하기' : '다시 시작하기'}
-        </button>
+        {/* 6. 저장하기 버튼 (조회 전용 화면에서는 '확인' 버튼만 노출) */}
+        {isReadOnly ? (
+          <button
+            onClick={() => navigate('/profile')}
+            className="w-full py-4 rounded-2xl font-bold text-base shadow-sm active:scale-[0.98] transition-all !mt-8 bg-[#6BE6C1] text-[#0F172A] hover:bg-[#5FD4A3]"
+          >
+            확인
+          </button>
+        ) : (
+          <button
+            onClick={handleSaveNote}
+            disabled={isSaving}
+            className={`w-full py-4 rounded-2xl font-bold text-base shadow-sm active:scale-[0.98] transition-all !mt-8 ${
+              isSaving
+                ? 'bg-gray-300 dark:bg-[#1E212B] text-gray-500 dark:text-[#F5F3EF]/30 cursor-not-allowed'
+                : 'bg-[#6BE6C1] text-[#0F172A] hover:bg-[#5FD4A3]'
+            }`}
+          >
+            {isSaving ? '저장 중...' : '저장하기'}
+          </button>
+        )}
       </main>
     </div>
   );

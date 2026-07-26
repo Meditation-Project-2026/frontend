@@ -30,11 +30,15 @@ const buildInitialMock = (): SessionsByDate => {
   const dateFor = (day: number) => toDateKey(new Date(now.getFullYear(), now.getMonth(), day));
   return {
     [dateFor(5)]: [
-      { id: 1, title: '10분 호흡 명상', time: '오전 10:30', logId: 1001 },
-      { id: 2, title: '15분 감사 명상', time: '오후 9:00', logId: 1002 },
+      { id: 1, title: '10분 호흡 명상', time: '오전 10:30', note: '마음이 한결 차분해졌어요.', logId: 1001 },
+      { id: 2, title: '15분 감사 명상', time: '오후 9:00', note: '오늘 하루에 감사한 마음이 들었다.', logId: 1002 },
     ],
-    [dateFor(8)]: [{ id: 3, title: '아침을 시작하는 긍정 명상', time: '오전 7:15', logId: 1003 }],
-    [dateFor(15)]: [{ id: 4, title: '스트레스 해소를 위한 호흡', time: '오후 1:00', logId: 1004 }],
+    [dateFor(8)]: [
+      { id: 3, title: '아침을 시작하는 긍정 명상', time: '오전 7:15', note: '상쾌하게 하루를 시작했어요.', logId: 1003 },
+    ],
+    [dateFor(15)]: [
+      { id: 4, title: '스트레스 해소를 위한 호흡', time: '오후 1:00', note: '집중이 잘 안 됐지만 끝까지 했다.', logId: 1004 },
+    ],
   };
 };
 

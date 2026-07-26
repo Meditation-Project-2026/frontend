@@ -44,7 +44,7 @@ const Profile: React.FC = () => {
 
   const handleSessionClick = (sessionId: number) => {
     const session = sessionsForSelectedDay.find((s) => s.id === sessionId);
-    if (session) navigate(`/meditation-feedback?logId=${session.logId}`);
+    if (session) navigate(`/meditation-feedback?logId=${session.logId}&readOnly=true`);
   };
 
   const handlePrevMonth = () => {
