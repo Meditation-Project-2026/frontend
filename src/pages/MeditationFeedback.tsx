@@ -262,23 +262,38 @@ export default function FeedbackPage() {
   // (기존 코드는 changeRate < 0 을 기준으로 삼았는데, 서버/목데이터가 changeRate를
   //  부호 없는 "변화율 크기"로만 내려주고 있어서, 2.64 -> 0.72 처럼 실제로는
   //  감소했는데도 changeRate가 양수(73.0)라 "증가"로 잘못 표시되는 문제가 있었다.)
-  // ※ isStressDecreased는 스트레스 지수 카드의 ↑/↓ 방향 표시 전용이며,
-  //    아래 성공/실패 판정에는 더 이상 사용하지 않는다.
-  const isStressDecreased = lfhfEnd < lfhfStart; // 스트레스 지수(LF/HF)가 낮아졌는지 여부 (카드 화살표 표시용)
+  const hasLfhfValue = lfhfStart !== 0 || lfhfEnd !== 0;
+  const isStressDecreased = lfhfEnd < lfhfStart; // 스트레스 지수(LF/HF)가 낮아졌으면 이완 성공
 
-  // ✅ [수정] 성공/실패는 백엔드 resultStatus 필드 하나로만 판단한다.
-  // 화면에 보이는 성공/실패 메시지와 하단 추천 명상 노출 여부가 항상 같은 기준을
-  // 쓰도록 isSuccess/isFailure를 여기서 한 번만 정의해서 그대로 재사용한다.
-  const isSuccess = data.resultStatus === 'SUCCESS';
+  // ✅ [수정] 성공/실패 판정은 백엔드 resultStatus가 아니라, 실제로 화면에 보여주는
+  // LF/HF 변화(스트레스 지수가 감소했는지)를 기준으로 한다.
+  // resultStatus는 성공/실패 의미가 아니라 초반/후반 원본 값 전달용 필드로 보이며,
+  // "이완에 성공했는지"는 프론트에서 LF/HF 증감을 직접 계산해서 판단해야 한다.
+  // (LF/HF 값이 아예 없는 예외적인 경우에만 resultStatus를 fallback으로 사용)
+  // 이렇게 계산한 isSuccess/isFailure를 결과 메시지·색상·추천 명상 노출까지
+  // 전부 동일하게 재사용해서 서로 어긋나지 않도록 한다.
+  const isSuccess = hasLfhfValue ? isStressDecreased : data.resultStatus === 'SUCCESS';
   const isFailure = !isSuccess;
 
-  // 🎯 결과 텍스트 및 배경 색상 (resultStatus 기준)
+  // 🎯 결과 텍스트 및 배경 색상 (isSuccess 기준)
   const resultText = isSuccess
     ? '깊은 이완 상태에 도달하셨습니다.\n심신이 안정된 상태입니다.'
     : '명상 중 잡념이 많으셨나요?\n호흡에 조금 더 집중해보세요.';
   const resultColor = isSuccess
     ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
     : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300';
+
+  // 🩹 [수정] 실제 백엔드 응답에는 recommendedMeditations가 비어있게 내려오는 경우가 있어서,
+  // 실패 화면에서 추천 명상 섹션 자체가 안 보이는 문제가 있었다.
+  // 백엔드 값이 비어있으면 기존 콘텐츠 목록(MEDITATION_CONTENTS)에서 대체 추천 목록을 채워서 보여준다.
+  const recommendedList =
+    data.recommendedMeditations && data.recommendedMeditations.length > 0
+      ? data.recommendedMeditations
+      : MEDITATION_CONTENTS.slice(0, 2).map((c) => ({
+          id: c.id,
+          title: c.title,
+          backgroundUrl: c.imageUrl,
+        }));
 
   return (
     <div className="h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
@@ -374,11 +389,11 @@ export default function FeedbackPage() {
         />
 
         {/* 5. 추천 명상 섹션 (실제 명상 실패 시에만 출력, 저장된 기록 조회 화면에서는 표시하지 않음) */}
-        {!isReadOnly && isFailure && data.recommendedMeditations.length > 0 && (
+        {!isReadOnly && isFailure && recommendedList.length > 0 && (
           <div>
             <h3 className="text-base font-bold text-[#191B1F] dark:text-[#F5F3EF] mb-3">추천 명상</h3>
             <div className="flex flex-col gap-2.5">
-              {data.recommendedMeditations.map((meditation) => (
+              {recommendedList.map((meditation) => (
                 <button
                   key={meditation.id}
                   onClick={() => navigate(`/face-detection?id=${meditation.id}&type=full`)}

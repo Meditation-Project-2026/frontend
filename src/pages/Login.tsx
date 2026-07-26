@@ -17,6 +17,7 @@ const Login: React.FC = () => {
     <div className="h-[100svh] w-full bg-[#FAF9F5] dark:bg-[#14161C] flex flex-col overflow-hidden">
       {/* 상단 다크 히어로 - 홈/프로필과 동일한 톤 */}
       <div className="bg-accent dark:bg-[#1E212B] rounded-b-[28px] pt-14 pb-10 px-6 flex flex-col items-center text-center shrink-0">
+        <img src="/images/logo.png" alt="BioCalm 로고" className="w-16 h-16 object-contain" />
         <h1 className="text-2xl font-extrabold tracking-tight text-white">BioCalm</h1>
         <p className="text-sm text-white/50 mt-1.5">로그인하고 오늘의 명상을 시작해보세요</p>
       </div>
