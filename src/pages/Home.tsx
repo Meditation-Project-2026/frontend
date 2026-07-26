@@ -39,7 +39,7 @@ const Home: React.FC = () => {
     setShowModal(false);
     if (selectedId) {
       navigate(`/face-detection?id=${selectedId}&type=full`);
-    } 
+    }
   };
 
   // 호흡 가이드 미포함
@@ -48,7 +48,7 @@ const Home: React.FC = () => {
     setShowModal(false);
     navigate(`/face-detection?id=${selectedId}&type=content`);
   };
-  
+
   return (
     <PageContainer className="relative pb-6">
       {/* 헤더 */}
