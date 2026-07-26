@@ -1,6 +1,5 @@
 import { useNavigate } from 'react-router-dom';
 import HomeHeader from '../components/Home/HomeHeader';
-import SearchBar from '../components/Home/SearchBar';
 import RecentMeditations from '../components/Home/RecentMeditations';
 import FavoriteContents from '../components/Home/FavoriteContents';
 import ActionButtons from '../components/Home/ActionButtons';
@@ -39,7 +38,7 @@ const Home: React.FC = () => {
     setShowModal(false);
     if (selectedId) {
       navigate(`/face-detection?id=${selectedId}&type=full`);
-    }
+    } 
   };
 
   // 호흡 가이드 미포함
@@ -48,30 +47,27 @@ const Home: React.FC = () => {
     setShowModal(false);
     navigate(`/face-detection?id=${selectedId}&type=content`);
   };
-
+  
   return (
     <PageContainer className="relative pb-6">
-      {/* 헤더 */}
-      <HomeHeader greeting="좋은 저녁이에요" userName="BioCalm" />
-
-      {/* 검색 바 */}
-      <SearchBar />
+      {/* 히어로 (인사말) */}
+      <HomeHeader userName="BioCalm" />
 
       {/* 메인 콘텐츠 */}
-      <main className="space-y-5 pb-6">
+      <main className="space-y-5 pt-6 pb-6">
         {/* 최근에 들은 명상 */}
         <RecentMeditations
           onViewAll={() => navigate('/contents')}
           onItemClick={(item) => handleContentClick(item.id)}
         />
 
-        {/* 즐겨찾기한 콘텐츠 */}
+        {/* 좋아요한 콘텐츠 */}
         <FavoriteContents
           items={likedItems}
           onItemClick={(item) => handleContentClick(item.id)}
         />
 
-        {/* 명상 시작 / 호흡 가이드 버튼 */}
+        {/* 명상 시작 / 호흡 가이드 시작 */}
         <ActionButtons
           onStartMeditation={handleStartMeditation}
           onStartBreathing={handleStartBreathing}

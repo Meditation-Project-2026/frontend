@@ -14,7 +14,7 @@ const FavoriteItemCard: React.FC<FavoriteItemCardProps> = ({ item, onClick }) =>
     <div className="aspect-square rounded-2xl overflow-hidden mb-2 ring-1 ring-black/5">
       <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
     </div>
-    <p className="text-xs font-bold text-secondary">{item.title}</p>
+    <p className="text-xs font-bold text-secondary truncate">{item.title}</p>
   </div>
 );
 
