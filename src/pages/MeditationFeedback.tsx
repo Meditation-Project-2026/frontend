@@ -283,6 +283,18 @@ export default function FeedbackPage() {
     ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
     : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300';
 
+  // 🩹 [수정] 실제 백엔드 응답에는 recommendedMeditations가 비어있게 내려오는 경우가 있어서,
+  // 실패 화면에서 추천 명상 섹션 자체가 안 보이는 문제가 있었다.
+  // 백엔드 값이 비어있으면 기존 콘텐츠 목록(MEDITATION_CONTENTS)에서 대체 추천 목록을 채워서 보여준다.
+  const recommendedList =
+    data.recommendedMeditations && data.recommendedMeditations.length > 0
+      ? data.recommendedMeditations
+      : MEDITATION_CONTENTS.slice(0, 2).map((c) => ({
+          id: c.id,
+          title: c.title,
+          backgroundUrl: c.imageUrl,
+        }));
+
   return (
     <div className="h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
       <Header title="명상 피드백" onBack={() => navigate(-1)} />
@@ -377,11 +389,11 @@ export default function FeedbackPage() {
         />
 
         {/* 5. 추천 명상 섹션 (실제 명상 실패 시에만 출력, 저장된 기록 조회 화면에서는 표시하지 않음) */}
-        {!isReadOnly && isFailure && data.recommendedMeditations.length > 0 && (
+        {!isReadOnly && isFailure && recommendedList.length > 0 && (
           <div>
             <h3 className="text-base font-bold text-[#191B1F] dark:text-[#F5F3EF] mb-3">추천 명상</h3>
             <div className="flex flex-col gap-2.5">
-              {data.recommendedMeditations.map((meditation) => (
+              {recommendedList.map((meditation) => (
                 <button
                   key={meditation.id}
                   onClick={() => navigate(`/face-detection?id=${meditation.id}&type=full`)}
