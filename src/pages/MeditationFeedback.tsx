@@ -149,9 +149,12 @@ export default function FeedbackPage() {
 
     const currentTitle = editableTitle || feedback.data?.title || '오늘의 힐링 명상';
     const now = new Date();
+    // 📌 [데모용 고정] 저장 시 프로필 캘린더에는 실제 오늘 날짜가 아니라
+    // 항상 이번 달 26일에 기록이 생기도록 고정한다. (데모 시연용 - 나중에 제거 시 now로 교체)
+    const demoDate = new Date(now.getFullYear(), now.getMonth(), 26);
     // logId가 없는 미리보기 상황에서도 기록을 구분해서 저장할 수 있도록 임시 id 발급
     const effectiveLogId = logId ? parseInt(logId) : Date.now();
-    const dateKey = toDateKey(now);
+    const dateKey = toDateKey(demoDate);
 
     const recordToSave = {
       ...feedback.data,
@@ -159,7 +162,7 @@ export default function FeedbackPage() {
       userNote: userNote,
       time: formatTimeLabel(now),
       date: dateKey,
-      day: now.getDate(),
+      day: demoDate.getDate(),
       logId: effectiveLogId,
     };
 
@@ -167,8 +170,8 @@ export default function FeedbackPage() {
     localStorage.setItem(`savedRecord_${effectiveLogId}`, JSON.stringify(recordToSave));
     localStorage.setItem('savedRecord_latest', JSON.stringify(recordToSave));
 
-    // 📅 프로필 캘린더에 저장 기록을 반영 (해당 날짜에 표시되고, 다시 눌러서 열람 가능)
-    addSession(now, {
+    // 📅 프로필 캘린더에 저장 기록을 반영 (26일에 표시되고, 다시 눌러서 열람 가능)
+    addSession(demoDate, {
       title: currentTitle,
       time: formatTimeLabel(now),
       note: userNote,
