@@ -1,4 +1,4 @@
-import { Heart } from 'lucide-react';
+import { Heart, Headphones, Music } from 'lucide-react';
 import type { MeditationContent } from '../../types/content';
 
 interface ContentCardProps {
@@ -8,6 +8,8 @@ interface ContentCardProps {
 }
 
 const ContentCard: React.FC<ContentCardProps> = ({ content, onClick, onLikeToggle }) => {
+  const TagIcon = content.tag === '음성 가이드' ? Headphones : Music;
+
   return (
     <button
       onClick={() => onClick?.(content.id)}
@@ -23,9 +25,16 @@ const ContentCard: React.FC<ContentCardProps> = ({ content, onClick, onLikeToggl
 
       <div className="flex flex-col items-center gap-2 shrink-0">
         <div
-          className="w-[76px] h-[76px] rounded-2xl bg-cover bg-center"
+          className="relative w-[76px] h-[76px] rounded-2xl bg-cover bg-center"
           style={{ backgroundImage: `url(${content.imageUrl})` }}
-        />
+        >
+          <div
+            className="absolute top-1.5 left-1.5 w-5 h-5 rounded-full bg-white/90 flex items-center justify-center text-secondary"
+            aria-label={content.tag}
+          >
+            <TagIcon size={11} strokeWidth={2} />
+          </div>
+        </div>
         <span
           role="button"
           aria-label={content.isLiked ? '좋아요 취소' : '좋아요'}

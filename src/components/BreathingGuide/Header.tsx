@@ -57,6 +57,8 @@ const Header: React.FC<HeaderProps> = ({
           text-base
           font-bold
           tracking-tight
+          text-[#191B1F]
+          dark:text-[#F5F3EF]
         "
       >
         {title}

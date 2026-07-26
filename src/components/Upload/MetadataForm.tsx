@@ -29,13 +29,13 @@ const MetadataForm: React.FC<MetadataFormProps> = ({
 
       <div>
         <label htmlFor="content-description" className="block text-xs font-semibold text-gray-400 dark:text-[#F5F3EF]/50 mb-2">
-          설명 및 태그
+          설명
         </label>
         <textarea
           id="content-description"
           value={description}
           onChange={(e) => onDescriptionChange(e.target.value)}
-          placeholder="내용에 대한 간단한 설명과 #태그 를 입력해주세요."
+          placeholder="내용에 대한 간단한 설명을 입력해주세요."
           rows={3}
           className="w-full bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-xl px-4 py-3 text-sm text-accent dark:text-[#F5F3EF]
                      placeholder:text-gray-400 dark:placeholder:text-white/40 outline-none resize-none focus:border-primary"

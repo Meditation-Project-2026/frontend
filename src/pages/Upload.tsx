@@ -21,6 +21,20 @@ const Upload: React.FC = () => {
 
   const canSubmit = Boolean(audioFile && background && title.trim());
 
+  // 업로드한 오디오 파일의 실제 길이(초)를 읽어온다.
+  const getAudioDurationSeconds = (file: File): Promise<number> => {
+    return new Promise((resolve, reject) => {
+      const audio = document.createElement('audio');
+      audio.preload = 'metadata';
+      audio.onloadedmetadata = () => {
+        resolve(audio.duration);
+        URL.revokeObjectURL(audio.src);
+      };
+      audio.onerror = () => reject(new Error('오디오 길이를 읽어올 수 없습니다.'));
+      audio.src = URL.createObjectURL(file);
+    });
+  };
+
   const handleSubmit = async () => {
     if (!canSubmit || !background || !audioFile) return;
     setSubmitting(true);
@@ -35,9 +49,19 @@ const Upload: React.FC = () => {
       // await uploadMeditationContent(formData);
       await new Promise((resolve) => setTimeout(resolve, 400));
 
+      // 실제 업로드한 파일 길이(분, 최소 1분)와 선택한 콘텐츠 타입에 맞는 태그를 사용
+      let minutes = 0;
+      try {
+        const durationSeconds = await getAudioDurationSeconds(audioFile);
+        minutes = Math.max(1, Math.round(durationSeconds / 60));
+      } catch (err) {
+        console.warn('오디오 길이 계산 실패:', err);
+      }
+      const tag = contentType === 'voice' ? '음성 가이드' : '명상 음악';
+
       // 프론트 상태로 콘텐츠 목록 최상단에 반영
       const audioUrl = URL.createObjectURL(audioFile);
-      addContent({ title, description, imageUrl: background, audioUrl });
+      addContent({ title, description, imageUrl: background, audioUrl, minutes, tag });
 
       navigate('/contents');
     } finally {
@@ -56,7 +80,7 @@ const Upload: React.FC = () => {
           >
             <ArrowLeft size={17} />
           </button>
-          <h1 className="text-base font-bold text-accent dark:text-[#F5F3EF]">새 명상 콘텐츠 업로드</h1>
+          <h1 className="text-lg font-bold text-accent dark:text-[#F5F3EF]">새 명상 콘텐츠 업로드</h1>
         </div>
 
         <div className="px-5 flex flex-col gap-8 pt-6 pb-10">

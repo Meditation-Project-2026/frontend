@@ -12,6 +12,8 @@ interface AddContentInput {
   description: string;
   imageUrl: string;
   audioUrl?: string;
+  minutes: number;
+  tag: string;
 }
 
 interface ContentsContextType {
@@ -36,17 +38,18 @@ export const ContentsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [baseContents, setBaseContents] = useState<UploadedContent[]>(MEDITATION_CONTENTS);
   const [uploadedContents, setUploadedContents] = useState<UploadedContent[]>([]);
 
-  const addContent = ({ title, description, imageUrl, audioUrl }: AddContentInput): number => {
+  const addContent = ({ title, description, imageUrl, audioUrl, minutes, tag }: AddContentInput): number => {
     const id = nextUploadedId++;
     const newItem: UploadedContent = {
       id,
       title,
-      minutes: 0,
+      minutes,
       author: '나',
       imageUrl,
-      tag: '내가 업로드',
+      tag,
       likes: 0,
       isLiked: false,
+      category: 'other' as const,
       description,
       audioUrl,
       isUploaded: true,

@@ -1,7 +1,10 @@
+import { Headphones, Music } from 'lucide-react';
+
 export interface FavoriteItem {
   id: number;
   title: string;
   imageUrl: string;
+  tag?: string;
 }
 
 interface FavoriteItemCardProps {
@@ -9,14 +12,26 @@ interface FavoriteItemCardProps {
   onClick?: (item: FavoriteItem) => void;
 }
 
-const FavoriteItemCard: React.FC<FavoriteItemCardProps> = ({ item, onClick }) => (
-  <div className="text-center group cursor-pointer" onClick={() => onClick?.(item)}>
-    <div className="aspect-square rounded-2xl overflow-hidden mb-2 ring-1 ring-black/5">
-      <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+const FavoriteItemCard: React.FC<FavoriteItemCardProps> = ({ item, onClick }) => {
+  const TagIcon = item.tag === '음성 가이드' ? Headphones : Music;
+
+  return (
+    <div className="text-center group cursor-pointer" onClick={() => onClick?.(item)}>
+      <div className="relative aspect-square rounded-2xl overflow-hidden mb-2 ring-1 ring-black/5">
+        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+        {item.tag && (
+          <div
+            className="absolute bottom-1.5 left-1.5 w-6 h-6 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-secondary"
+            aria-label={item.tag}
+          >
+            <TagIcon size={12} strokeWidth={2} />
+          </div>
+        )}
+      </div>
+      <p className="text-xs font-bold text-secondary truncate">{item.title}</p>
     </div>
-    <p className="text-xs font-bold text-secondary">{item.title}</p>
-  </div>
-);
+  );
+};
 
 interface FavoriteContentsProps {
   items?: FavoriteItem[];

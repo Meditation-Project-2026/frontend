@@ -14,64 +14,67 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="h-[100svh] w-full bg-[#FAF9F5] dark:bg-[#14161C] flex flex-col justify-center overflow-hidden px-6">
-      <div className="mb-12 -mt-16 text-center">
-        <h1 className="text-4xl font-extrabold tracking-tight text-accent dark:text-[#F5F3EF] mb-2">BioCalm</h1>
-        <p className="text-sm text-gray-400 dark:text-white/40">로그인하고 오늘의 명상을 시작해보세요</p>
+    <div className="h-[100svh] w-full bg-[#FAF9F5] dark:bg-[#14161C] flex flex-col overflow-hidden">
+      {/* 상단 다크 히어로 - 홈/프로필과 동일한 톤 */}
+      <div className="bg-accent dark:bg-[#1E212B] rounded-b-[28px] pt-14 pb-10 px-6 flex flex-col items-center text-center shrink-0">
+        <h1 className="text-2xl font-extrabold tracking-tight text-white">BioCalm</h1>
+        <p className="text-sm text-white/50 mt-1.5">로그인하고 오늘의 명상을 시작해보세요</p>
       </div>
 
-      <form onSubmit={handleLogin} className="space-y-4">
-        <div>
-          <label htmlFor="login-email" className="block text-xs font-semibold text-gray-400 dark:text-white/50 mb-2">
-            이메일
-          </label>
-          <div className="relative">
-            <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40" />
-            <input
-              id="login-email"
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-accent dark:text-[#F5F3EF] placeholder:text-gray-400 dark:placeholder:text-white/40 outline-none focus:border-primary"
-            />
+      <div className="flex-1 overflow-y-auto hide-scrollbar px-6 pt-8">
+        <form onSubmit={handleLogin} className="space-y-4">
+          <div>
+            <label htmlFor="login-email" className="block text-xs font-semibold text-gray-400 dark:text-white/50 mb-2">
+              이메일
+            </label>
+            <div className="relative">
+              <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40" />
+              <input
+                id="login-email"
+                type="email"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="w-full bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-accent dark:text-[#F5F3EF] placeholder:text-gray-400 dark:placeholder:text-white/40 outline-none focus:border-primary"
+              />
+            </div>
           </div>
-        </div>
 
-        <div>
-          <label htmlFor="login-password" className="block text-xs font-semibold text-gray-400 dark:text-white/50 mb-2">
-            비밀번호
-          </label>
-          <div className="relative">
-            <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40" />
-            <input
-              id="login-password"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="비밀번호를 입력하세요"
-              className="w-full bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-accent dark:text-[#F5F3EF] placeholder:text-gray-400 dark:placeholder:text-white/40 outline-none focus:border-primary"
-            />
+          <div>
+            <label htmlFor="login-password" className="block text-xs font-semibold text-gray-400 dark:text-white/50 mb-2">
+              비밀번호
+            </label>
+            <div className="relative">
+              <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-white/40" />
+              <input
+                id="login-password"
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="비밀번호를 입력하세요"
+                className="w-full bg-white dark:bg-white/10 border border-gray-100 dark:border-white/10 rounded-xl pl-11 pr-4 py-3 text-sm text-accent dark:text-[#F5F3EF] placeholder:text-gray-400 dark:placeholder:text-white/40 outline-none focus:border-primary"
+              />
+            </div>
           </div>
-        </div>
 
-        <button
-          type="submit"
-          className="w-full py-4 rounded-2xl font-bold text-base bg-primary text-accent active:scale-[0.98] transition-all mt-2"
-        >
-          로그인
-        </button>
+          <button
+            type="submit"
+            className="w-full py-4 rounded-2xl font-bold text-base bg-primary text-accent active:scale-[0.98] transition-all mt-2"
+          >
+            로그인
+          </button>
 
-        {/* 회원가입: 버튼만 존재, 별도 화면 구현은 하지 않음 */}
-        <button
-          type="button"
-          className="w-full py-3 text-sm font-semibold text-gray-400 dark:text-white/50"
-        >
-          계정이 없으신가요? <span className="text-accent dark:text-primary font-bold">회원가입</span>
-        </button>
-      </form>
+          {/* 회원가입: 버튼만 존재, 별도 화면 구현은 하지 않음 */}
+          <button
+            type="button"
+            className="w-full py-3 text-sm font-semibold text-gray-400 dark:text-white/50"
+          >
+            계정이 없으신가요? <span className="text-accent dark:text-primary font-bold">회원가입</span>
+          </button>
+        </form>
+      </div>
     </div>
   );
 };

@@ -3,9 +3,10 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronRight, Pencil } from 'lucide-react';
 import type { MeditationFeedbackResponse } from '../api/meditation';
 import Header from "../components/Header";
-import { FeedbackCard } from "../components/MeditationFeedback/FeedbackCard";
+import StatComparisonCard from "../components/MeditationFeedback/StatComparisonCard";
 import { getMeditationFeedback, updateUserNote } from '../api/meditation';
 import { MEDITATION_CONTENTS } from '../data/meditationContents';
+import { useSessions } from '../contexts/SessionsContext';
 
 interface FeedbackState {
   data: MeditationFeedbackResponse | null;
@@ -13,14 +14,18 @@ interface FeedbackState {
   error: string | null;
 }
 
+// 디자인 확인용 목데이터. 실제 백엔드에 없는 logId로는 화면을 볼 수 없어서 추가함.
+// /meditation-feedback?preview=1 로 접속하면 API 호출 없이 이 데이터로 바로 렌더링됨.
+// resultStatus를 FAILURE로 둬서 "추천 명상" 섹션(실패 시에만 노출)도 미리 확인할 수 있게 함.
 const MOCK_FEEDBACK: MeditationFeedbackResponse = {
   meditationDate: new Date().toISOString(),
-  title: '오늘의 힐링 명상',
-  totalDuration: '301',
-  lfhf: { start: 2.64, end: 0.72, changeRate: 73.0 },
-  heartRate: { start: 49, end: 63, diff: 14 },
-  resultStatus: 'SUCCESS',
+  title: '10분 아침 명상',
+  totalDuration: '612',
+  lfhf: { start: 1.62, end: 0.84, changeRate: -48.1 },
+  heartRate: { start: 78, end: 66, diff: -12 },
+  resultStatus: 'FAILURE',
   userNote: null,
+  // 기존 콘텐츠(콘텐츠 탭과 동일한 데이터)를 그대로 추천 목록으로 사용
   recommendedMeditations: MEDITATION_CONTENTS.slice(1, 3).map((c) => ({
     id: c.id,
     title: c.title,
@@ -30,12 +35,10 @@ const MOCK_FEEDBACK: MeditationFeedbackResponse = {
 
 export default function FeedbackPage() {
   const navigate = useNavigate();
+  const { addSession } = useSessions();
   const [searchParams] = useSearchParams();
   const logId = searchParams.get('logId');
   const isPreview = searchParams.get('preview') === '1' || !logId;
-
-  // 프로필/기록 탭에서 다시 들어왔을 때 저장하기 버튼 제거용 플래그
-  const isReadOnly = searchParams.get('readOnly') === 'true';
 
   const [feedback, setFeedback] = useState<FeedbackState>({
     data: null,
@@ -49,22 +52,15 @@ export default function FeedbackPage() {
   const [editableTitle, setEditableTitle] = useState<string>('');
   const [isEditingTitle, setIsEditingTitle] = useState<boolean>(false);
 
+  // 📊 피드백 데이터 로드 및 폴링 로직 구현
   useEffect(() => {
-    // 1. localStorage에 저장된 기록이 있으면 우선 복원
-    const savedLocal = localStorage.getItem('savedRecord_latest');
-    let localData: MeditationFeedbackResponse | null = null;
-    if (savedLocal) {
-      try {
-        localData = JSON.parse(savedLocal);
-      } catch (e) {}
-    }
-
     if (isPreview) {
+      // 목데이터로 즉시 렌더링 (API 호출 없음)
+      // ?title=콘텐츠제목 으로 넘어온 경우 그 제목을 그대로 반영 (실제로는 logId 기준으로 서버가 내려주는 값)
       const titleParam = searchParams.get('title');
-      const baseData = localData || MOCK_FEEDBACK;
-      const previewData = titleParam ? { ...baseData, title: titleParam } : baseData;
+      const previewData = titleParam ? { ...MOCK_FEEDBACK, title: titleParam } : MOCK_FEEDBACK;
       setFeedback({ data: previewData, loading: false, error: null });
-      setUserNote(previewData.userNote || '');
+      setUserNote(MOCK_FEEDBACK.userNote || '');
       setEditableTitle(previewData.title);
       return;
     }
@@ -77,24 +73,21 @@ export default function FeedbackPage() {
       try {
         const data = await getMeditationFeedback(parseInt(logId));
 
-        if (!data.resultStatus) {
+        if (data.resultStatus !== 'SUCCESS' && data.resultStatus !== 'FAILURE') {
+          setFeedback({ data: null, loading: true, error: null });
           timerId = setTimeout(loadFeedback, 1500);
         } else {
-          const mergedData = {
-            ...data,
-            title: localData?.title || data.title,
-            userNote: localData?.userNote || data.userNote,
-          };
-          setFeedback({ data: mergedData, loading: false, error: null });
-          setUserNote(mergedData.userNote || '');
-          setEditableTitle(mergedData.title);
+          setFeedback({ data, loading: false, error: null });
+          setUserNote(data.userNote || '');
+          setEditableTitle(data.title);
         }
       } catch (err) {
         console.error('Failed to load feedback:', err);
-        const fallbackData = localData || MOCK_FEEDBACK;
-        setFeedback({ data: fallbackData, loading: false, error: null });
-        setUserNote(fallbackData.userNote || '');
-        setEditableTitle(fallbackData.title);
+        setFeedback({
+          data: null,
+          loading: false,
+          error: '피드백 데이터를 불러올 수 없습니다.',
+        });
       }
     };
 
@@ -105,45 +98,70 @@ export default function FeedbackPage() {
     };
   }, [logId, isPreview]);
 
-  // 💾 사용자 노트 저장
+  // 💾 사용자 노트 저장 및 홈 이동 로직
   const handleSaveNote = async () => {
+    const now = new Date();
+    const hour24 = now.getHours();
+    const period = hour24 < 12 ? '오전' : '오후';
+    const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+    const timeLabel = `${period} ${hour12}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+    if (isPreview) {
+      // 미리보기 모드에서는 실제 저장 API는 없지만, 프로필 캘린더 기록은 프론트 상태로 남겨서 확인 가능하게 함
+      addSession(now, {
+        title: editableTitle || feedback.data?.title || '명상',
+        time: timeLabel,
+        logId: logId ? parseInt(logId) : Math.floor(Math.random() * 100000),
+      });
+      navigate('/home');
+      return;
+    }
+
+    if (!logId) return;
+
     setIsSaving(true);
     setSaveMessage(null);
 
-    const currentTitle = editableTitle || feedback.data?.title || '오늘의 힐링 명상';
-
-    const recordToSave = {
-      ...feedback.data,
-      title: currentTitle,
-      userNote: userNote,
-      time: '오후 7:23',
-      date: '2026-07-26',
-      day: 26,
-      logId: logId || '172',
-    };
-
-    localStorage.setItem('savedRecord_latest', JSON.stringify(recordToSave));
-    localStorage.setItem('savedRecord_2026-07-26', JSON.stringify(recordToSave));
-
-    if (logId) {
-      updateUserNote({
+    try {
+      await updateUserNote({
         logId: parseInt(logId),
         userNote: userNote,
-        title: currentTitle,
-      }).catch((e) => console.log('Backend sync skipped'));
-    }
+        title: editableTitle,
+      });
 
-    setTimeout(() => {
+      // 저장에 성공하면 프로필 캘린더에도 오늘 날짜로 기록
+      addSession(now, {
+        title: editableTitle,
+        time: timeLabel,
+        logId: parseInt(logId),
+      });
+
+      setSaveMessage({
+        type: 'success',
+        text: '메모가 저장되었습니다!',
+      });
+
+      setTimeout(() => {
+        setSaveMessage(null);
+        navigate('/home');
+      }, 1500);
+    } catch (err) {
+      console.error('Failed to save note:', err);
+      setSaveMessage({
+        type: 'error',
+        text: '메모 저장에 실패했습니다.',
+      });
       setIsSaving(false);
-      navigate('/home');
-    }, 500);
+    }
   };
 
+  // 📅 날짜 포맷팅
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
   };
 
+  // 시간 포맷팅 (초 -> OO분 OO초)
   const formatDuration = (seconds: string | number): string => {
     const sec = typeof seconds === 'string' ? parseInt(seconds) : seconds;
     if (isNaN(sec) || sec < 0) return '0';
@@ -158,6 +176,7 @@ export default function FeedbackPage() {
     totalDuration = String(Number(lastMeditationTime));
   }
 
+  // 로딩 중 (디자인 수정 버전)
   if (feedback.loading) {
     return (
       <div className="h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
@@ -174,6 +193,7 @@ export default function FeedbackPage() {
     );
   }
 
+  // 에러 발생
   if (feedback.error || !feedback.data) {
     return (
       <div className="h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
@@ -194,32 +214,46 @@ export default function FeedbackPage() {
   }
 
   const { data } = feedback;
-  const isSuccess = data.resultStatus === 'SUCCESS';
 
   const lfhfStart = data.lfhf.start !== null && data.lfhf.start !== undefined ? Number(data.lfhf.start.toFixed(2)) : 0;
   const lfhfEnd = data.lfhf.end !== null && data.lfhf.end !== undefined ? Number(data.lfhf.end.toFixed(2)) : 0;
   const lfhfChange = data.lfhf.changeRate !== null && data.lfhf.changeRate !== undefined ? Number(data.lfhf.changeRate.toFixed(1)) : 0;
   const hrStart = data.heartRate.start !== null && data.heartRate.start !== undefined ? Math.round(data.heartRate.start) : 0;
   const hrEnd = data.heartRate.end !== null && data.heartRate.end !== undefined ? Math.round(data.heartRate.end) : 0;
-  const hrChange = data.heartRate.diff !== null && data.heartRate.diff !== undefined ? Math.round(data.heartRate.diff) : 0;
+
+  // "성공/실패"는 실제 스트레스 지수 변화(생체 데이터) 기준으로 판단한다.
+  // (예전엔 data.resultStatus라는 별개 값을 봐서, 문구는 "이완 상태 도달"인데
+  //  버튼은 "다시 시작하기"가 뜨는 등 서로 모순되는 상황이 생겼었다.)
+  const hasValidChange = lfhfChange !== 0 && !isNaN(Number(lfhfChange));
+  const isSuccess = hasValidChange ? Number(lfhfChange) < 0 : data.resultStatus === 'SUCCESS';
 
   let resultText = '';
-  if (lfhfChange !== 0 && !isNaN(Number(lfhfChange))) {
-    if (Number(lfhfChange) > 0) {
-      resultText = '깊은 이완 상태에 도달하셨습니다. 심신이 안정된 상태입니다.';
+  if (hasValidChange) {
+    if (Number(lfhfChange) < 0) {
+      resultText = '깊은 이완 상태에 도달하셨습니다.\n심신이 안정된 상태입니다.';
     } else {
-      resultText = '명상 중 잡념이 많으셨나요? 호흡에 조금 더 집중해보세요.';
+      resultText = '명상 중 잡념이 많으셨나요?\n호흡에 조금 더 집중해보세요.';
     }
   } else {
-    resultText = isSuccess ? '깊은 이완 상태에 도달하셨습니다. 심신이 안정된 상태입니다.' : '명상 미완성';
+    resultText = isSuccess ? '명상 성공을 통해 안정되었습니다.' : '명상 미완성';
   }
 
-  let resultColor = 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+  let resultColor = '';
+  if (hasValidChange) {
+    if (Number(lfhfChange) < 0) {
+      resultColor = 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+    } else {
+      resultColor = 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
+    }
+  } else {
+    resultColor = 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
+  }
 
   return (
     <div className="h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
       <Header title="명상 피드백" onBack={() => navigate(-1)} />
 
+      {/* 🚀 [수정] space-y-8을 space-y-5로 변경하여 요소들 사이의 간격을 좁혔습니다. */}
       <main className="flex-1 overflow-y-auto hide-scrollbar px-5 pb-6 space-y-5">
         {/* 1. 기본 정보 섹션 */}
         <div className="space-y-3 text-sm border-b border-gray-100 dark:border-white/[0.07] text-[#64748B] dark:text-[#F5F3EF]/50 pb-4">
@@ -229,9 +263,7 @@ export default function FeedbackPage() {
           </div>
           <div className="flex justify-between items-center">
             <span>명상</span>
-            {isReadOnly ? (
-              <span className="text-[#0F172A] dark:text-[#F5F3EF] font-medium">{editableTitle || data.title}</span>
-            ) : isEditingTitle ? (
+            {isEditingTitle ? (
               <input
                 autoFocus
                 value={editableTitle}
@@ -263,72 +295,94 @@ export default function FeedbackPage() {
           <label className="text-sm font-bold text-[#64748B] dark:text-[#F5F3EF]/50 uppercase">한 줄 메모</label>
           <input
             type="text"
-            readOnly={isReadOnly}
             value={userNote}
             onChange={(e) => setUserNote(e.target.value)}
-            placeholder={isReadOnly ? "작성된 메모가 없습니다." : "오늘 명상은 어땠나요?"}
-            className={`w-full border border-gray-100 dark:border-white/[0.07] rounded-xl px-4 py-3 text-sm shadow-sm focus:outline-none ${
-              isReadOnly
-                ? 'bg-gray-50 dark:bg-[#1E212B]/50 text-gray-500 dark:text-[#F5F3EF]/60 cursor-default'
-                : 'bg-white dark:bg-[#1E212B] text-[#2D3142] dark:text-[#F5F3EF] focus:ring-2 focus:ring-[#45947D]'
-            }`}
+            placeholder="오늘 명상은 어땠나요?"
+            className="w-full bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-xl px-4 py-3 text-sm text-[#2D3142] dark:text-[#F5F3EF] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#45947D] placeholder:text-[#6B7280] dark:placeholder:text-white/40"
           />
         </div>
 
-        {/* 3. 상태 메시지 */}
-        <div className={`p-4 rounded-lg text-center font-semibold text-sm shadow-sm ${resultColor}`}>
+        {/* 3. 메모 저장 상태 메시지 */}
+        {saveMessage && (
+          <div
+            className={`p-4 rounded-lg text-center font-semibold text-sm ${
+              saveMessage.type === 'success'
+                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+                : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
+            }`}
+          >
+            {saveMessage.text}
+          </div>
+        )}
+
+        <div className={`p-4 rounded-lg text-center font-semibold text-sm shadow-sm whitespace-pre-line ${resultColor}`}>
           {resultText}
         </div>
 
-        {/* 4. 최종 생체 데이터 카드 */}
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-2xl p-4">
-            <p className="text-xs text-gray-400 dark:text-white/50 mb-1">최종 심박수</p>
-            <p className="text-2xl font-bold text-[#191B1F] dark:text-[#F5F3EF]">
-              {hrEnd || '63'} <span className="text-xs font-medium text-gray-400 dark:text-white/40">BPM</span>
-            </p>
-          </div>
-          <div className="bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-2xl p-4">
-            <p className="text-xs text-gray-400 dark:text-white/50 mb-1">최종 스트레스 지수</p>
-            <p className="text-2xl font-bold text-[#191B1F] dark:text-[#F5F3EF]">{lfhfEnd || '0.72'}</p>
-          </div>
-        </div>
-
-        <FeedbackCard
-          title="심박수 변화"
-          value={hrEnd || 63}
-          unit="BPM"
-          change={`${hrChange !== 0 ? Math.abs(Number(hrChange)) : 14}bpm`}
-          start={{ val: hrStart || 49, percent: '40%' }}
-          end={{ val: hrEnd || 63, percent: '55%' }}
+        {/* 4. 생체 데이터 비교 카드 (신규 디자인: 초반→후반 원형 비교) */}
+        <StatComparisonCard
+          title="심박수"
+          startValue={hrStart || '-'}
+          endValue={hrEnd || '-'}
+          changeLabel={
+            hrStart
+              ? `${hrEnd < hrStart ? '↓' : '↑'} ${Math.abs(hrEnd - hrStart)}bpm ${hrEnd < hrStart ? '감소' : '증가'}`
+              : '-'
+          }
+          isImprovement={hrEnd < hrStart}
         />
 
-        <FeedbackCard
-          title="스트레스 지수 변화"
-          value={lfhfEnd || 0.72}
-          unit="ratio"
-          change={`${lfhfChange !== 0 ? Math.abs(Number(lfhfChange)).toFixed(1) : 73.0}%`}
-          start={{ val: lfhfStart || 2.64, percent: '80%' }}
-          end={{ val: lfhfEnd || 0.72, percent: '25%' }}
+        <StatComparisonCard
+          title="스트레스 지수"
+          startValue={lfhfStart || '-'}
+          endValue={lfhfEnd || '-'}
+          changeLabel={
+            lfhfChange !== 0
+              ? `${lfhfChange < 0 ? '↓' : '↑'} ${Math.abs(lfhfChange).toFixed(1)}% ${lfhfChange < 0 ? '감소' : '증가'}`
+              : '-'
+          }
+          isImprovement={lfhfEnd < lfhfStart}
         />
 
-        {/* 6. 하단 버튼: 저장하기와 100% 동일한 민트색 UI 적용된 확인 버튼 */}
-        {isReadOnly ? (
-          <button
-            onClick={() => navigate(-1)}
-            className="w-full py-4 rounded-2xl font-bold text-base shadow-sm active:scale-[0.98] transition-all !mt-8 bg-[#6BE6C1] text-[#0F172A] hover:bg-[#5FD4A3]"
-          >
-            확인
-          </button>
-        ) : (
-          <button
-            onClick={handleSaveNote}
-            disabled={isSaving}
-            className="w-full py-4 rounded-2xl font-bold text-base shadow-sm active:scale-[0.98] transition-all !mt-8 bg-[#6BE6C1] text-[#0F172A] hover:bg-[#5FD4A3]"
-          >
-            {isSaving ? '저장 중...' : '저장하기'}
-          </button>
+        {/* 5. 추천 명상 섹션 (실패 시에만 출력) */}
+        {!isSuccess && data.recommendedMeditations.length > 0 && (
+          <div>
+            <h3 className="text-base font-bold text-[#191B1F] dark:text-[#F5F3EF] mb-3">추천 명상</h3>
+            <div className="flex flex-col gap-2.5">
+              {data.recommendedMeditations.map((meditation) => (
+                <button
+                  key={meditation.id}
+                  onClick={() => navigate(`/face-detection?id=${meditation.id}&type=full`)}
+                  className="w-full flex items-center gap-3 p-3 bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-2xl text-left active:scale-[0.98] transition-transform"
+                >
+                  {meditation.backgroundUrl && (
+                    <div
+                      className="w-14 h-14 rounded-xl bg-cover bg-center shrink-0"
+                      style={{ backgroundImage: `url(${meditation.backgroundUrl})` }}
+                    />
+                  )}
+                  <p className="flex-1 min-w-0 text-sm font-bold text-[#191B1F] dark:text-[#F5F3EF] truncate">
+                    {meditation.title}
+                  </p>
+                  <ChevronRight size={16} className="text-gray-300 dark:text-white/30 shrink-0" />
+                </button>
+              ))}
+            </div>
+          </div>
         )}
+
+        {/* 6. 저장하기 버튼 */}
+        <button
+          onClick={handleSaveNote}
+          disabled={isSaving}
+          className={`w-full py-4 rounded-2xl font-bold text-base shadow-sm active:scale-[0.98] transition-all !mt-8 ${
+            isSaving
+              ? 'bg-gray-300 dark:bg-[#1E212B] text-gray-500 dark:text-[#F5F3EF]/30 cursor-not-allowed'
+              : 'bg-[#6BE6C1] text-[#0F172A] hover:bg-[#5FD4A3]'
+          }`}
+        >
+          {isSaving ? '저장 중...' : isSuccess ? '저장하기' : '다시 시작하기'}
+        </button>
       </main>
     </div>
   );

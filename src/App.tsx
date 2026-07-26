@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { LogIdProvider } from './contexts/LogIdContext';
 import { ThemeProvider } from './contexts/ThemeContext';
 import { ContentsProvider } from './contexts/ContentsContext';
+import { SessionsProvider } from './contexts/SessionsContext';
 import MainLayout from './components/Layout/MainLayout';
 import Login from './pages/Login';
 import FaceDetection from './pages/FaceDetection';
@@ -20,6 +21,7 @@ function App() {
   return (
     <ThemeProvider>
       <ContentsProvider>
+        <SessionsProvider>
         <BrowserRouter>
           <LogIdProvider>
             <div className="App">
@@ -49,6 +51,7 @@ function App() {
             </div>
           </LogIdProvider>
         </BrowserRouter>
+        </SessionsProvider>
       </ContentsProvider>
     </ThemeProvider>
   );

@@ -1,8 +1,9 @@
 interface ConnectionStatusProps {
   isConnected: boolean;
+  inverted?: boolean;
 }
 
-const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ isConnected }) => {
+const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ isConnected, inverted = false }) => {
   return (
     <div className="mb-4 flex justify-center">
       <div
@@ -13,7 +14,13 @@ const ConnectionStatus: React.FC<ConnectionStatusProps> = ({ isConnected }) => {
         <span className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
         <span
           className={`text-xs font-medium ${
-            isConnected ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+            inverted
+              ? isConnected
+                ? 'text-green-400'
+                : 'text-red-400'
+              : isConnected
+                ? 'text-green-700 dark:text-green-400'
+                : 'text-red-600 dark:text-red-400'
           }`}
         >
           {isConnected ? 'WebSocket 연결됨' : 'WebSocket 연결 중'}

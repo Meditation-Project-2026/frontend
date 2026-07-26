@@ -32,7 +32,7 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
           onClick={() => onFilterChange('all')}
           className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${
             filter === 'all'
-              ? 'bg-primary text-accent'
+              ? 'bg-accent dark:bg-primary text-white dark:text-accent'
               : 'bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] text-gray-500 dark:text-[#F5F3EF]/50'
           }`}
         >
@@ -42,7 +42,7 @@ const SearchFilterBar: React.FC<SearchFilterBarProps> = ({
           onClick={() => onFilterChange('popular')}
           className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${
             filter === 'popular'
-              ? 'bg-primary text-accent'
+              ? 'bg-accent dark:bg-primary text-white dark:text-accent'
               : 'bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] text-gray-500 dark:text-[#F5F3EF]/50'
           }`}
         >
