@@ -56,7 +56,7 @@ const Upload: React.FC = () => {
           >
             <ArrowLeft size={17} />
           </button>
-          <h1 className="text-base font-bold text-accent dark:text-[#F5F3EF]">새 명상 콘텐츠 업로드</h1>
+          <h1 className="text-lg font-bold text-accent dark:text-[#F5F3EF]">새 명상 콘텐츠 업로드</h1>
         </div>
 
         <div className="px-5 flex flex-col gap-8 pt-6 pb-10">
