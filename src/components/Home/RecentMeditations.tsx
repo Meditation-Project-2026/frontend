@@ -1,3 +1,5 @@
+import { Headphones, Music } from 'lucide-react';
+
 export interface MeditationItem {
   id: number;
   title: string;
@@ -11,25 +13,32 @@ interface MeditationCardProps {
   onClick?: (item: MeditationItem) => void;
 }
 
-const MeditationCard: React.FC<MeditationCardProps> = ({ item, onClick }) => (
-  <div
-    className="flex-shrink-0 w-32 cursor-pointer"
-    onClick={() => onClick?.(item)}
-  >
-    <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-2 shadow-sm">
-      <img
-        src={item.imageUrl}
-        alt={item.title}
-        className="w-full h-full object-cover"
-      />
-      <div className="absolute bottom-2 left-2 bg-white/90 backdrop-blur-md px-2 py-0.5 rounded-full text-[10px] font-bold text-secondary">
-        {item.tag}
+const MeditationCard: React.FC<MeditationCardProps> = ({ item, onClick }) => {
+  const TagIcon = item.tag === '음성 가이드' ? Headphones : Music;
+
+  return (
+    <div
+      className="flex-shrink-0 w-32 cursor-pointer"
+      onClick={() => onClick?.(item)}
+    >
+      <div className="relative aspect-[3/4] rounded-2xl overflow-hidden mb-2 shadow-sm">
+        <img
+          src={item.imageUrl}
+          alt={item.title}
+          className="w-full h-full object-cover"
+        />
+        <div
+          className="absolute bottom-2 left-2 w-6 h-6 rounded-full bg-white/90 backdrop-blur-md flex items-center justify-center text-secondary"
+          aria-label={item.tag}
+        >
+          <TagIcon size={12} strokeWidth={2} />
+        </div>
       </div>
+      <h3 className="font-bold text-sm leading-tight px-0.5 mb-0.5 truncate">{item.title}</h3>
+      <p className="text-xs text-secondary px-0.5">{item.duration}</p>
     </div>
-    <h3 className="font-bold text-sm leading-tight px-0.5 mb-0.5 truncate">{item.title}</h3>
-    <p className="text-xs text-secondary px-0.5">{item.duration}</p>
-  </div>
-);
+  );
+};
 
 interface RecentMeditationsProps {
   items?: MeditationItem[];
