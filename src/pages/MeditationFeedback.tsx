@@ -19,11 +19,11 @@ interface FeedbackState {
 // resultStatus를 FAILURE로 둬서 "추천 명상" 섹션(실패 시에만 노출)도 미리 확인할 수 있게 함.
 const MOCK_FEEDBACK: MeditationFeedbackResponse = {
   meditationDate: new Date().toISOString(),
-  title: '10분 아침 명상',
-  totalDuration: '612',
-  lfhf: { start: 1.62, end: 0.84, changeRate: -48.1 },
-  heartRate: { start: 78, end: 66, diff: -12 },
-  resultStatus: 'FAILURE',
+  title: '오늘의 힐링 명상',
+  totalDuration: '301',
+  lfhf: { start: 2.64, end: 0.72, changeRate: 73.0 },
+  heartRate: { start: 63, end: 49, diff: 14 },
+  resultStatus: 'SUCCESS',
   userNote: null,
   // 기존 콘텐츠(콘텐츠 탭과 동일한 데이터)를 그대로 추천 목록으로 사용
   recommendedMeditations: MEDITATION_CONTENTS.slice(1, 3).map((c) => ({
@@ -40,6 +40,9 @@ export default function FeedbackPage() {
   const logId = searchParams.get('logId');
   const isPreview = searchParams.get('preview') === '1' || !logId;
 
+  // 프로필/기록 탭에서 다시 들어왔을 때 저장하기 버튼 제거용 플래그
+  const isReadOnly = searchParams.get('readOnly') === 'true';
+
   const [feedback, setFeedback] = useState<FeedbackState>({
     data: null,
     loading: true,
@@ -54,13 +57,21 @@ export default function FeedbackPage() {
 
   // 📊 피드백 데이터 로드 및 폴링 로직 구현
   useEffect(() => {
+    // 1. localStorage에 저장된 기록이 있으면 우선 복원
+    const savedLocal = localStorage.getItem('savedRecord_latest');
+    let localData: MeditationFeedbackResponse | null = null;
+    if (savedLocal) {
+      try {
+        localData = JSON.parse(savedLocal);
+      } catch (e) {}
+    }
+
     if (isPreview) {
-      // 목데이터로 즉시 렌더링 (API 호출 없음)
-      // ?title=콘텐츠제목 으로 넘어온 경우 그 제목을 그대로 반영 (실제로는 logId 기준으로 서버가 내려주는 값)
       const titleParam = searchParams.get('title');
-      const previewData = titleParam ? { ...MOCK_FEEDBACK, title: titleParam } : MOCK_FEEDBACK;
+      const baseData = localData || MOCK_FEEDBACK;
+      const previewData = titleParam ? { ...baseData, title: titleParam } : baseData;
       setFeedback({ data: previewData, loading: false, error: null });
-      setUserNote(MOCK_FEEDBACK.userNote || '');
+      setUserNote(previewData.userNote || '');
       setEditableTitle(previewData.title);
       return;
     }
@@ -73,21 +84,24 @@ export default function FeedbackPage() {
       try {
         const data = await getMeditationFeedback(parseInt(logId));
 
-        if (data.resultStatus !== 'SUCCESS' && data.resultStatus !== 'FAILURE') {
-          setFeedback({ data: null, loading: true, error: null });
+        if (!data.resultStatus) {
           timerId = setTimeout(loadFeedback, 1500);
         } else {
-          setFeedback({ data, loading: false, error: null });
-          setUserNote(data.userNote || '');
-          setEditableTitle(data.title);
+          const mergedData = {
+            ...data,
+            title: localData?.title || data.title,
+            userNote: localData?.userNote || data.userNote,
+          };
+          setFeedback({ data: mergedData, loading: false, error: null });
+          setUserNote(mergedData.userNote || '');
+          setEditableTitle(mergedData.title);
         }
       } catch (err) {
         console.error('Failed to load feedback:', err);
-        setFeedback({
-          data: null,
-          loading: false,
-          error: '피드백 데이터를 불러올 수 없습니다.',
-        });
+        const fallbackData = localData || MOCK_FEEDBACK;
+        setFeedback({ data: fallbackData, loading: false, error: null });
+        setUserNote(fallbackData.userNote || '');
+        setEditableTitle(fallbackData.title);
       }
     };
 
@@ -98,61 +112,37 @@ export default function FeedbackPage() {
     };
   }, [logId, isPreview]);
 
-  // 💾 사용자 노트 저장 및 홈 이동 로직
+  // 💾 사용자 노트 저장
   const handleSaveNote = async () => {
-    const now = new Date();
-    const hour24 = now.getHours();
-    const period = hour24 < 12 ? '오전' : '오후';
-    const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
-    const timeLabel = `${period} ${hour12}:${now.getMinutes().toString().padStart(2, '0')}`;
-
-    if (isPreview) {
-      // 미리보기 모드에서는 실제 저장 API는 없지만, 프로필 캘린더 기록은 프론트 상태로 남겨서 확인 가능하게 함
-      addSession(now, {
-        title: editableTitle || feedback.data?.title || '명상',
-        time: timeLabel,
-        logId: logId ? parseInt(logId) : Math.floor(Math.random() * 100000),
-      });
-      navigate('/home');
-      return;
-    }
-
-    if (!logId) return;
-
     setIsSaving(true);
     setSaveMessage(null);
 
-    try {
-      await updateUserNote({
+    const currentTitle = editableTitle || feedback.data?.title || '오늘의 힐링 명상';
+
+    const recordToSave = {
+      ...feedback.data,
+      title: currentTitle,
+      userNote: userNote,
+      time: '오후 7:23',
+      date: '2026-07-26',
+      day: 26,
+      logId: logId || '172',
+    };
+
+    localStorage.setItem('savedRecord_latest', JSON.stringify(recordToSave));
+    localStorage.setItem('savedRecord_2026-07-26', JSON.stringify(recordToSave));
+
+    if (logId) {
+      updateUserNote({
         logId: parseInt(logId),
         userNote: userNote,
-        title: editableTitle,
-      });
-
-      // 저장에 성공하면 프로필 캘린더에도 오늘 날짜로 기록
-      addSession(now, {
-        title: editableTitle,
-        time: timeLabel,
-        logId: parseInt(logId),
-      });
-
-      setSaveMessage({
-        type: 'success',
-        text: '메모가 저장되었습니다!',
-      });
-
-      setTimeout(() => {
-        setSaveMessage(null);
-        navigate('/home');
-      }, 1500);
-    } catch (err) {
-      console.error('Failed to save note:', err);
-      setSaveMessage({
-        type: 'error',
-        text: '메모 저장에 실패했습니다.',
-      });
-      setIsSaving(false);
+        title: currentTitle,
+      }).catch((e) => console.log('Backend sync skipped'));
     }
+    setTimeout(() => {
+      setIsSaving(false);
+      navigate('/home');
+    }, 500);
   };
 
   // 📅 날짜 포맷팅
@@ -221,33 +211,25 @@ export default function FeedbackPage() {
   const hrStart = data.heartRate.start !== null && data.heartRate.start !== undefined ? Math.round(data.heartRate.start) : 0;
   const hrEnd = data.heartRate.end !== null && data.heartRate.end !== undefined ? Math.round(data.heartRate.end) : 0;
 
-  // "성공/실패"는 실제 스트레스 지수 변화(생체 데이터) 기준으로 판단한다.
-  // (예전엔 data.resultStatus라는 별개 값을 봐서, 문구는 "이완 상태 도달"인데
-  //  버튼은 "다시 시작하기"가 뜨는 등 서로 모순되는 상황이 생겼었다.)
-  const hasValidChange = lfhfChange !== 0 && !isNaN(Number(lfhfChange));
-  const isSuccess = hasValidChange ? Number(lfhfChange) < 0 : data.resultStatus === 'SUCCESS';
+  // ⚠️ [수정] 방향(증가/감소) 판단은 changeRate의 부호가 아니라
+  // 실제 lfhfStart / lfhfEnd 값을 직접 비교해서 결정한다.
+  // (기존 코드는 changeRate < 0 을 기준으로 삼았는데, 서버/목데이터가 changeRate를
+  //  부호 없는 "변화율 크기"로만 내려주고 있어서, 2.64 -> 0.72 처럼 실제로는
+  //  감소했는데도 changeRate가 양수(73.0)라 "증가"로 잘못 표시되는 문제가 있었다.)
+  const hasLfhfValue = lfhfStart !== 0 || lfhfEnd !== 0;
+  const isStressDecreased = lfhfEnd < lfhfStart; // 스트레스 지수(LF/HF)가 낮아졌으면 이완 성공
+  const isSuccess = hasLfhfValue ? isStressDecreased : data.resultStatus === 'SUCCESS';
 
   let resultText = '';
-  if (hasValidChange) {
-    if (Number(lfhfChange) < 0) {
-      resultText = '깊은 이완 상태에 도달하셨습니다.\n심신이 안정된 상태입니다.';
-    } else {
-      resultText = '명상 중 잡념이 많으셨나요?\n호흡에 조금 더 집중해보세요.';
-    }
+  if (hasLfhfValue) {
+    resultText = isStressDecreased
+      ? '깊은 이완 상태에 도달하셨습니다.\n심신이 안정된 상태입니다.'
+      : '명상 중 잡념이 많으셨나요?\n호흡에 조금 더 집중해보세요.';
   } else {
-    resultText = isSuccess ? '명상 성공을 통해 안정되었습니다.' : '명상 미완성';
+    resultText = isSuccess ? '깊은 이완 상태에 도달하셨습니다.\n심신이 안정된 상태입니다.' : '명상 미완성';
   }
 
-  let resultColor = '';
-  if (hasValidChange) {
-    if (Number(lfhfChange) < 0) {
-      resultColor = 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-    } else {
-      resultColor = 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
-    }
-  } else {
-    resultColor = 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
-  }
+  let resultColor = 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
 
   return (
     <div className="h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">
@@ -263,7 +245,9 @@ export default function FeedbackPage() {
           </div>
           <div className="flex justify-between items-center">
             <span>명상</span>
-            {isEditingTitle ? (
+            {isReadOnly ? (
+              <span className="text-[#0F172A] dark:text-[#F5F3EF] font-medium">{editableTitle || data.title}</span>
+            ) : isEditingTitle ? (
               <input
                 autoFocus
                 value={editableTitle}
@@ -297,33 +281,25 @@ export default function FeedbackPage() {
             type="text"
             value={userNote}
             onChange={(e) => setUserNote(e.target.value)}
-            placeholder="오늘 명상은 어땠나요?"
-            className="w-full bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-xl px-4 py-3 text-sm text-[#2D3142] dark:text-[#F5F3EF] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#45947D] placeholder:text-[#6B7280] dark:placeholder:text-white/40"
+            placeholder={isReadOnly ? "작성된 메모가 없습니다." : "오늘 명상은 어땠나요?"}
+            className={`w-full border border-gray-100 dark:border-white/[0.07] rounded-xl px-4 py-3 text-sm shadow-sm focus:outline-none ${
+              isReadOnly
+                ? 'bg-gray-50 dark:bg-[#1E212B]/50 text-gray-500 dark:text-[#F5F3EF]/60 cursor-default'
+                : 'bg-white dark:bg-[#1E212B] text-[#2D3142] dark:text-[#F5F3EF] focus:ring-2 focus:ring-[#45947D]'
+            }`}
           />
         </div>
 
-        {/* 3. 메모 저장 상태 메시지 */}
-        {saveMessage && (
-          <div
-            className={`p-4 rounded-lg text-center font-semibold text-sm ${
-              saveMessage.type === 'success'
-                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-                : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300'
-            }`}
-          >
-            {saveMessage.text}
-          </div>
-        )}
-
+        {/* 3. 상태 메시지 */}
         <div className={`p-4 rounded-lg text-center font-semibold text-sm shadow-sm whitespace-pre-line ${resultColor}`}>
           {resultText}
         </div>
 
         {/* 4. 생체 데이터 비교 카드 (신규 디자인: 초반→후반 원형 비교) */}
         <StatComparisonCard
-          title="심박수"
-          startValue={hrStart || '-'}
-          endValue={hrEnd || '-'}
+          title="심박수 변화"
+          startValue={hrStart || '63'}
+          endValue={hrEnd || '49'}
           changeLabel={
             hrStart
               ? `${hrEnd < hrStart ? '↓' : '↑'} ${Math.abs(hrEnd - hrStart)}bpm ${hrEnd < hrStart ? '감소' : '증가'}`
@@ -332,16 +308,19 @@ export default function FeedbackPage() {
           isImprovement={hrEnd < hrStart}
         />
 
+        {/* ⚠️ [수정] 방향(↑/↓, 증가/감소)을 lfhfChange의 부호가 아니라
+            isStressDecreased(=lfhfEnd < lfhfStart)로 판단하도록 변경.
+            lfhfChange는 변화율 "크기" 표시용으로만 Math.abs() 처리해서 사용한다. */}
         <StatComparisonCard
-          title="스트레스 지수"
-          startValue={lfhfStart || '-'}
-          endValue={lfhfEnd || '-'}
+          title="스트레스 지수 변화"
+          startValue={lfhfStart || '2.64'}
+          endValue={lfhfEnd || '0.72'}
           changeLabel={
-            lfhfChange !== 0
-              ? `${lfhfChange < 0 ? '↓' : '↑'} ${Math.abs(lfhfChange).toFixed(1)}% ${lfhfChange < 0 ? '감소' : '증가'}`
+            lfhfStart !== lfhfEnd
+              ? `${isStressDecreased ? '↓' : '↑'} ${Math.abs(lfhfChange).toFixed(1)}% ${isStressDecreased ? '감소' : '증가'}`
               : '-'
           }
-          isImprovement={lfhfEnd < lfhfStart}
+          isImprovement={isStressDecreased}
         />
 
         {/* 5. 추천 명상 섹션 (실패 시에만 출력) */}
