@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronRight } from 'lucide-react';
 import type { MeditationFeedbackResponse } from '../api/meditation';
 import Header from "../components/Header";
+import { FeedbackCard } from "../components/MeditationFeedback/FeedbackCard";
 import { getMeditationFeedback, updateUserNote } from '../api/meditation';
 import { MEDITATION_CONTENTS } from '../data/meditationContents';
 
@@ -187,9 +188,12 @@ export default function FeedbackPage() {
   const { data } = feedback;
   const isSuccess = data.resultStatus === 'SUCCESS';
 
+  const lfhfStart = data.lfhf.start !== null && data.lfhf.start !== undefined ? Number(data.lfhf.start.toFixed(2)) : 0;
   const lfhfEnd = data.lfhf.end !== null && data.lfhf.end !== undefined ? Number(data.lfhf.end.toFixed(2)) : 0;
   const lfhfChange = data.lfhf.changeRate !== null && data.lfhf.changeRate !== undefined ? Number(data.lfhf.changeRate.toFixed(1)) : 0;
+  const hrStart = data.heartRate.start !== null && data.heartRate.start !== undefined ? Math.round(data.heartRate.start) : 0;
   const hrEnd = data.heartRate.end !== null && data.heartRate.end !== undefined ? Math.round(data.heartRate.end) : 0;
+  const hrChange = data.heartRate.diff !== null && data.heartRate.diff !== undefined ? Math.round(data.heartRate.diff) : 0;
 
   let resultText = '';
   if (lfhfChange !== 0 && !isNaN(Number(lfhfChange))) {
@@ -277,6 +281,25 @@ export default function FeedbackPage() {
             <p className="text-2xl font-bold text-[#191B1F] dark:text-[#F5F3EF]">{lfhfEnd || '-'}</p>
           </div>
         </div>
+
+        {/* 4-1. 전후 비교 카드 (요청에 따라 최종값 카드와 함께 유지) */}
+        <FeedbackCard
+          title="스트레스 지수 변화"
+          value={lfhfEnd}
+          unit="ratio"
+          change={`${lfhfChange !== 0 ? Math.abs(Number(lfhfChange)).toFixed(1) : 0}%`}
+          start={{ val: lfhfStart, percent: `${lfhfStart !== 0 ? Math.min(lfhfStart * 30, 100) : 0}%` }}
+          end={{ val: lfhfEnd, percent: `${lfhfEnd !== 0 ? Math.min(lfhfEnd * 30, 100) : 0}%` }}
+        />
+
+        <FeedbackCard
+          title="심박수 변화"
+          value={hrEnd}
+          unit="BPM"
+          change={`${hrChange !== 0 ? Math.abs(Number(hrChange)) : 0}bpm`}
+          start={{ val: hrStart, percent: `${hrStart !== 0 ? Math.min((hrStart / 120) * 100, 100) : 0}%` }}
+          end={{ val: hrEnd, percent: `${hrEnd !== 0 ? Math.min((hrEnd / 120) * 100, 100) : 0}%` }}
+        />
 
         {/* 5. 추천 명상 섹션 (실패 시에만 출력) */}
         {!isSuccess && data.recommendedMeditations.length > 0 && (
