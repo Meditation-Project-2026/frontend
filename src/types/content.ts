@@ -1,3 +1,5 @@
+import type { ContentCategory } from '../data/meditationContents';
+
 export interface MeditationContent {
   id: number;
   title: string;
@@ -7,6 +9,7 @@ export interface MeditationContent {
   imageUrl: string;
   tag: string;
   isLiked: boolean;
+  category: ContentCategory;
 }
 
 export interface DaySession {

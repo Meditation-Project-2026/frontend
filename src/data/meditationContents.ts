@@ -1,3 +1,5 @@
+export type ContentCategory = 'sleep' | 'focus' | 'stress' | 'other';
+
 export interface MeditationContentItem {
   id: number;
   title: string;
@@ -7,6 +9,7 @@ export interface MeditationContentItem {
   tag: string;
   likes: number;
   isLiked: boolean;
+  category: ContentCategory;
 }
 
 // 홈(최근에 들은 명상/좋아요한 콘텐츠)과 콘텐츠 탭이 공유하는 단일 데이터 소스.
@@ -21,6 +24,7 @@ export const MEDITATION_CONTENTS: MeditationContentItem[] = [
     tag: '음성 가이드',
     likes: 1,
     isLiked: true,
+    category: 'other',
   },
   {
     id: 2,
@@ -31,6 +35,7 @@ export const MEDITATION_CONTENTS: MeditationContentItem[] = [
     tag: '명상 음악',
     likes: 1,
     isLiked: true,
+    category: 'sleep',
   },
   {
     id: 3,
@@ -42,6 +47,7 @@ export const MEDITATION_CONTENTS: MeditationContentItem[] = [
     tag: '명상 음악',
     likes: 1,
     isLiked: true,
+    category: 'stress',
   },
   {
     id: 4,
@@ -52,5 +58,6 @@ export const MEDITATION_CONTENTS: MeditationContentItem[] = [
     tag: '명상 음악',
     likes: 0,
     isLiked: false,
+    category: 'focus',
   },
 ];
