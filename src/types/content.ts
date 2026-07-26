@@ -6,6 +6,7 @@ export interface MeditationContent {
   likes: number;
   imageUrl: string;
   tag: string;
+  isLiked: boolean;
 }
 
 export interface DaySession {

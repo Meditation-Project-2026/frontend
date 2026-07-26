@@ -15,11 +15,8 @@ const Login: React.FC = () => {
 
   return (
     <div className="h-[100svh] w-full bg-[#FAF9F5] dark:bg-[#14161C] flex flex-col justify-center overflow-hidden px-6">
-      <div className="mb-10 text-center">
-        <div className="w-16 h-16 rounded-2xl bg-primary/15 flex items-center justify-center mx-auto mb-4">
-          <span className="text-3xl">🧘</span>
-        </div>
-        <h1 className="text-xl font-bold text-accent dark:text-[#F5F3EF] mb-1">마음챙김 명상</h1>
+      <div className="mb-12 -mt-16 text-center">
+        <h1 className="text-4xl font-extrabold tracking-tight text-accent dark:text-[#F5F3EF] mb-2">BioCalm</h1>
         <p className="text-sm text-gray-400 dark:text-white/40">로그인하고 오늘의 명상을 시작해보세요</p>
       </div>
 

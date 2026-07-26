@@ -16,11 +16,7 @@ const RecognitionArea: React.FC<RecognitionAreaProps> = ({ videoStream, isFaceDe
 
   return (
     <section className="relative mb-6">
-      <div
-        className={`relative w-56 h-56 mx-auto overflow-hidden rounded-3xl border-[3px] transition-colors duration-300 ${
-          isFaceDetected ? 'border-[#6BE6C1]' : 'border-red-200 dark:border-red-400/40'
-        }`}
-      >
+      <div className="relative w-56 h-56 mx-auto overflow-hidden rounded-3xl">
         <video
           ref={videoRef}
           autoPlay

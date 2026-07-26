@@ -7,7 +7,7 @@ import { useContents } from '../contexts/ContentsContext';
 
 const Contents: React.FC = () => {
   const navigate = useNavigate();
-  const { contents } = useContents();
+  const { contents, toggleLike } = useContents();
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState<ContentFilter>('all');
   const [showModal, setShowModal] = useState(false);
@@ -50,7 +50,7 @@ const Contents: React.FC = () => {
       <SearchFilterBar query={query} onQueryChange={setQuery} filter={filter} onFilterChange={setFilter} />
 
       <div className="mt-5">
-        <ContentList items={filteredItems} onItemClick={handleContentClick} />
+        <ContentList items={filteredItems} onItemClick={handleContentClick} onLikeToggle={toggleLike} />
       </div>
 
       {showModal && (

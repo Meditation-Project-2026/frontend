@@ -6,6 +6,7 @@ export interface MeditationContentItem {
   imageUrl: string;
   tag: string;
   likes: number;
+  isLiked: boolean;
 }
 
 // 홈(최근에 들은 명상/좋아요한 콘텐츠)과 콘텐츠 탭이 공유하는 단일 데이터 소스.
@@ -19,6 +20,7 @@ export const MEDITATION_CONTENTS: MeditationContentItem[] = [
     imageUrl: '/images/medi4.jpg',
     tag: '음성 가이드',
     likes: 1,
+    isLiked: true,
   },
   {
     id: 2,
@@ -27,7 +29,8 @@ export const MEDITATION_CONTENTS: MeditationContentItem[] = [
     author: '고요의숲',
     imageUrl: '/images/medi6.jpg',
     tag: '명상 음악',
-    likes: 0,
+    likes: 1,
+    isLiked: true,
   },
   {
     id: 3,
@@ -37,7 +40,8 @@ export const MEDITATION_CONTENTS: MeditationContentItem[] = [
     imageUrl:
       'https://lh3.googleusercontent.com/aida-public/AB6AXuBFl04oEf-6kGTknyHrQ1inAXLzzU1bs2ceIl0S0vn4TqvxzqwNelwFIelKT3JTHBhm-n2xbfsYwj7CSNDVkZXtUrjxzEeEYqlWtU-4Xv1TOoFQMIVZ7ec4JkPGnhTQT2OSQjXFVuj0btouvZYzRvHk2Sv53IB0P1ygxoagBr7hOiTUbSCXpGFm6HEEWDdWb8EisOnkOk_9F_3GGiVDlzmG9lHqnNsK7FfI6SGnSQ6zC5CV6jWny89bcEO6AoM0JC7T60sNJClBdDpB',
     tag: '명상 음악',
-    likes: 0,
+    likes: 1,
+    isLiked: true,
   },
   {
     id: 4,
@@ -47,5 +51,6 @@ export const MEDITATION_CONTENTS: MeditationContentItem[] = [
     imageUrl: '/images/medi5.jpg',
     tag: '명상 음악',
     likes: 0,
+    isLiked: false,
   },
 ];
