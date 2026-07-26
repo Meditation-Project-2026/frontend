@@ -1,23 +1,31 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 interface PreBreathCountdownProps {
   onComplete: () => void;
 }
 
-// BreathingCircle이 놓이는 자리에 먼저 3-2-1을 보여주고, 끝나면 onComplete를 호출해서
-// 실제 호흡 애니메이션(BreathingCircle)으로 자연스럽게 넘어가게 하는 카운트다운.
-// 별도 화면이 아니라 같은 레이아웃(h-[260px]) 안에서 원만 바뀌는 방식.
 const PreBreathCountdown: React.FC<PreBreathCountdownProps> = ({ onComplete }) => {
   const [count, setCount] = useState(3);
+  const onCompleteRef = useRef(onComplete);
 
+  // 최신 onComplete 콜백 유지
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
+
+  // 카운트다운 타이머 (부모의 리렌더링 영향 완전 차단)
   useEffect(() => {
     if (count <= 0) {
-      onComplete();
+      onCompleteRef.current();
       return;
     }
-    const timer = setTimeout(() => setCount((c) => c - 1), 1000);
+
+    const timer = setTimeout(() => {
+      setCount((prev) => prev - 1);
+    }, 1000);
+
     return () => clearTimeout(timer);
-  }, [count, onComplete]);
+  }, [count]); // 🚀 count 변화만 감지하여 1초마다 안정적으로 차감됨
 
   return (
     <div className="relative w-full h-[260px] flex flex-col items-center justify-center shrink-0 gap-4">
