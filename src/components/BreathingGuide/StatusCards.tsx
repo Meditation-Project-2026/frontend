@@ -72,7 +72,7 @@ const StatusCards: React.FC<StatusCardsProps> = ({
               스트레스 지수란?
             </h2>
             <p className="text-sm text-slate-500 dark:text-white/60 text-center leading-relaxed mb-6">
-              심박수의 미세한 변화 패턴(심박변이도)을 분석해 자율신경의 균형 상태를 나타내는 지표예요.
+              lf/hf의 값으로, 심박수의 미세한 변화 패턴(심박변이도)을 분석해 자율신경의 균형 상태를 나타내는 지표예요.
               수치가 낮을수록 몸이 이완되어 부교감 신경이 우세한 편안한 상태에 가깝고,
               수치가 높을수록 교감 신경이 활성화된 긴장 상태에 가까워요.
             </p>

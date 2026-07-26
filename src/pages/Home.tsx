@@ -15,7 +15,7 @@ const Home: React.FC = () => {
   const { contents } = useContents();
   const likedItems = contents
     .filter((c) => c.isLiked)
-    .map((c) => ({ id: c.id, title: c.title, imageUrl: c.imageUrl }));
+    .map((c) => ({ id: c.id, title: c.title, imageUrl: c.imageUrl, tag: c.tag }));
 
   const [showModal, setShowModal] = useState(false);
   const [selectedId, setSelectedId] = useState<number | null>(null);

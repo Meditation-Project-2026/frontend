@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import SearchFilterBar, { type ContentFilter } from '../components/Contents/SearchFilterBar';
+import FeaturedContentCard from '../components/Contents/FeaturedContentCard';
 import ContentList from '../components/Contents/ContentList';
 import PageContainer from '../components/Layout/PageContainer';
 import { useContents } from '../contexts/ContentsContext';
@@ -20,6 +21,12 @@ const Contents: React.FC = () => {
     }
     return items;
   }, [contents, query, filter]);
+
+  // 좋아요 수가 가장 많은 콘텐츠를 실제 데이터 기준으로 계산
+  const mostPopular = useMemo(() => {
+    if (contents.length === 0) return null;
+    return [...contents].sort((a, b) => b.likes - a.likes)[0];
+  }, [contents]);
 
   const handleContentClick = (id: number) => {
     const target = contents.find((item) => item.id === id);
@@ -48,6 +55,16 @@ const Contents: React.FC = () => {
       <h1 className="pt-6 px-5 text-lg font-bold text-accent dark:text-[#F5F3EF]">명상 콘텐츠</h1>
 
       <SearchFilterBar query={query} onQueryChange={setQuery} filter={filter} onFilterChange={setFilter} />
+
+      {mostPopular && (
+        <FeaturedContentCard
+          label="가장 인기 많은 콘텐츠"
+          title={mostPopular.title}
+          subtitle={`by ${mostPopular.author} · 좋아요 ${mostPopular.likes}`}
+          minutes={mostPopular.minutes}
+          onPlay={() => navigate(`/face-detection?id=${mostPopular.id}&type=full`)}
+        />
+      )}
 
       <div className="mt-5">
         <ContentList items={filteredItems} onItemClick={handleContentClick} onLikeToggle={toggleLike} />

@@ -6,6 +6,7 @@ import Header from "../components/Header";
 import StatComparisonCard from "../components/MeditationFeedback/StatComparisonCard";
 import { getMeditationFeedback, updateUserNote } from '../api/meditation';
 import { MEDITATION_CONTENTS } from '../data/meditationContents';
+import { useSessions } from '../contexts/SessionsContext';
 
 interface FeedbackState {
   data: MeditationFeedbackResponse | null;
@@ -34,6 +35,7 @@ const MOCK_FEEDBACK: MeditationFeedbackResponse = {
 
 export default function FeedbackPage() {
   const navigate = useNavigate();
+  const { addSession } = useSessions();
   const [searchParams] = useSearchParams();
   const logId = searchParams.get('logId');
   const isPreview = searchParams.get('preview') === '1' || !logId;
@@ -98,8 +100,19 @@ export default function FeedbackPage() {
 
   // 💾 사용자 노트 저장 및 홈 이동 로직
   const handleSaveNote = async () => {
+    const now = new Date();
+    const hour24 = now.getHours();
+    const period = hour24 < 12 ? '오전' : '오후';
+    const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
+    const timeLabel = `${period} ${hour12}:${now.getMinutes().toString().padStart(2, '0')}`;
+
     if (isPreview) {
-      // 미리보기 모드에서는 실제 저장 API가 없으니 그냥 홈으로 이동만
+      // 미리보기 모드에서는 실제 저장 API는 없지만, 프로필 캘린더 기록은 프론트 상태로 남겨서 확인 가능하게 함
+      addSession(now, {
+        title: editableTitle || feedback.data?.title || '명상',
+        time: timeLabel,
+        logId: logId ? parseInt(logId) : Math.floor(Math.random() * 100000),
+      });
       navigate('/home');
       return;
     }
@@ -114,6 +127,13 @@ export default function FeedbackPage() {
         logId: parseInt(logId),
         userNote: userNote,
         title: editableTitle,
+      });
+
+      // 저장에 성공하면 프로필 캘린더에도 오늘 날짜로 기록
+      addSession(now, {
+        title: editableTitle,
+        time: timeLabel,
+        logId: parseInt(logId),
       });
 
       setSaveMessage({
@@ -194,7 +214,6 @@ export default function FeedbackPage() {
   }
 
   const { data } = feedback;
-  const isSuccess = data.resultStatus === 'SUCCESS';
 
   const lfhfStart = data.lfhf.start !== null && data.lfhf.start !== undefined ? Number(data.lfhf.start.toFixed(2)) : 0;
   const lfhfEnd = data.lfhf.end !== null && data.lfhf.end !== undefined ? Number(data.lfhf.end.toFixed(2)) : 0;
@@ -202,19 +221,25 @@ export default function FeedbackPage() {
   const hrStart = data.heartRate.start !== null && data.heartRate.start !== undefined ? Math.round(data.heartRate.start) : 0;
   const hrEnd = data.heartRate.end !== null && data.heartRate.end !== undefined ? Math.round(data.heartRate.end) : 0;
 
+  // "성공/실패"는 실제 스트레스 지수 변화(생체 데이터) 기준으로 판단한다.
+  // (예전엔 data.resultStatus라는 별개 값을 봐서, 문구는 "이완 상태 도달"인데
+  //  버튼은 "다시 시작하기"가 뜨는 등 서로 모순되는 상황이 생겼었다.)
+  const hasValidChange = lfhfChange !== 0 && !isNaN(Number(lfhfChange));
+  const isSuccess = hasValidChange ? Number(lfhfChange) < 0 : data.resultStatus === 'SUCCESS';
+
   let resultText = '';
-  if (lfhfChange !== 0 && !isNaN(Number(lfhfChange))) {
+  if (hasValidChange) {
     if (Number(lfhfChange) < 0) {
-      resultText = '깊은 이완 상태에 도달하셨습니다. 심신이 안정된 상태입니다.';
+      resultText = '깊은 이완 상태에 도달하셨습니다.\n심신이 안정된 상태입니다.';
     } else {
-      resultText = '명상 중 잡념이 많으셨나요? 호흡에 조금 더 집중해보세요.';
+      resultText = '명상 중 잡념이 많으셨나요?\n호흡에 조금 더 집중해보세요.';
     }
   } else {
     resultText = isSuccess ? '명상 성공을 통해 안정되었습니다.' : '명상 미완성';
   }
 
   let resultColor = '';
-  if (lfhfChange !== 0 && !isNaN(Number(lfhfChange))) {
+  if (hasValidChange) {
     if (Number(lfhfChange) < 0) {
       resultColor = 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
     } else {
@@ -290,13 +315,13 @@ export default function FeedbackPage() {
           </div>
         )}
 
-        <div className={`p-4 rounded-lg text-center font-semibold text-sm shadow-sm ${resultColor}`}>
+        <div className={`p-4 rounded-lg text-center font-semibold text-sm shadow-sm whitespace-pre-line ${resultColor}`}>
           {resultText}
         </div>
 
         {/* 4. 생체 데이터 비교 카드 (신규 디자인: 초반→후반 원형 비교) */}
         <StatComparisonCard
-          title="심박수 변화"
+          title="심박수"
           startValue={hrStart || '-'}
           endValue={hrEnd || '-'}
           changeLabel={
@@ -308,7 +333,7 @@ export default function FeedbackPage() {
         />
 
         <StatComparisonCard
-          title="스트레스 지수 변화"
+          title="스트레스 지수"
           startValue={lfhfStart || '-'}
           endValue={lfhfEnd || '-'}
           changeLabel={
@@ -356,7 +381,7 @@ export default function FeedbackPage() {
               : 'bg-[#6BE6C1] text-[#0F172A] hover:bg-[#5FD4A3]'
           }`}
         >
-          {isSaving ? '저장 중...' : '다시 시작하기'}
+          {isSaving ? '저장 중...' : isSuccess ? '저장하기' : '다시 시작하기'}
         </button>
       </main>
     </div>
