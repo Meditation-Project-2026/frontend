@@ -149,9 +149,12 @@ export default function FeedbackPage() {
 
     const currentTitle = editableTitle || feedback.data?.title || '오늘의 힐링 명상';
     const now = new Date();
+    // 📌 [데모용 고정] 저장 시 프로필 캘린더에는 실제 오늘 날짜가 아니라
+    // 항상 이번 달 26일에 기록이 생기도록 고정한다. (데모 시연용 - 나중에 제거 시 now로 교체)
+    const demoDate = new Date(now.getFullYear(), now.getMonth(), 26);
     // logId가 없는 미리보기 상황에서도 기록을 구분해서 저장할 수 있도록 임시 id 발급
     const effectiveLogId = logId ? parseInt(logId) : Date.now();
-    const dateKey = toDateKey(now);
+    const dateKey = toDateKey(demoDate);
 
     const recordToSave = {
       ...feedback.data,
@@ -159,7 +162,7 @@ export default function FeedbackPage() {
       userNote: userNote,
       time: formatTimeLabel(now),
       date: dateKey,
-      day: now.getDate(),
+      day: demoDate.getDate(),
       logId: effectiveLogId,
     };
 
@@ -167,8 +170,8 @@ export default function FeedbackPage() {
     localStorage.setItem(`savedRecord_${effectiveLogId}`, JSON.stringify(recordToSave));
     localStorage.setItem('savedRecord_latest', JSON.stringify(recordToSave));
 
-    // 📅 프로필 캘린더에 저장 기록을 반영 (해당 날짜에 표시되고, 다시 눌러서 열람 가능)
-    addSession(now, {
+    // 📅 프로필 캘린더에 저장 기록을 반영 (26일에 표시되고, 다시 눌러서 열람 가능)
+    addSession(demoDate, {
       title: currentTitle,
       time: formatTimeLabel(now),
       note: userNote,
@@ -259,34 +262,23 @@ export default function FeedbackPage() {
   // (기존 코드는 changeRate < 0 을 기준으로 삼았는데, 서버/목데이터가 changeRate를
   //  부호 없는 "변화율 크기"로만 내려주고 있어서, 2.64 -> 0.72 처럼 실제로는
   //  감소했는데도 changeRate가 양수(73.0)라 "증가"로 잘못 표시되는 문제가 있었다.)
-  const hasLfhfValue = lfhfStart !== 0 || lfhfEnd !== 0;
-  const isStressDecreased = lfhfEnd < lfhfStart; // 스트레스 지수(LF/HF)가 낮아졌으면 이완 성공
-  const isSuccess = hasLfhfValue ? isStressDecreased : data.resultStatus === 'SUCCESS';
+  // ※ isStressDecreased는 스트레스 지수 카드의 ↑/↓ 방향 표시 전용이며,
+  //    아래 성공/실패 판정에는 더 이상 사용하지 않는다.
+  const isStressDecreased = lfhfEnd < lfhfStart; // 스트레스 지수(LF/HF)가 낮아졌는지 여부 (카드 화살표 표시용)
 
-  // 하단 "추천 명상" 섹션은 화면에 보여지는 성공/실패 판정(isSuccess)과
-  // 반드시 일치해야 하므로, 별도의 백엔드 resultStatus가 아니라 isSuccess를 그대로 사용한다.
-  // (resultStatus만 보고 판단하면, 화면엔 "성공"으로 보이는데도 추천 명상이 뜨는
-  //  불일치가 생길 수 있음)
+  // ✅ [수정] 성공/실패는 백엔드 resultStatus 필드 하나로만 판단한다.
+  // 화면에 보이는 성공/실패 메시지와 하단 추천 명상 노출 여부가 항상 같은 기준을
+  // 쓰도록 isSuccess/isFailure를 여기서 한 번만 정의해서 그대로 재사용한다.
+  const isSuccess = data.resultStatus === 'SUCCESS';
   const isFailure = !isSuccess;
 
-  // 🎯 결과 텍스트 및 배경 색상 분기 보정
-  let resultText = '';
-  let resultColor = '';
-
-  if (hasLfhfValue) {
-    if (isStressDecreased) {
-      resultText = '깊은 이완 상태에 도달하셨습니다.\n심신이 안정된 상태입니다.';
-      resultColor = 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
-    } else {
-      resultText = '명상 중 잡념이 많으셨나요?\n호흡에 조금 더 집중해보세요.';
-      resultColor = 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300'; // 👈 증가 시 주황/경고 색상
-    }
-  } else {
-    resultText = isSuccess ? '깊은 이완 상태에 도달하셨습니다.\n심신이 안정된 상태입니다.' : '명상 미완성';
-    resultColor = isSuccess
-      ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
-      : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
-  }
+  // 🎯 결과 텍스트 및 배경 색상 (resultStatus 기준)
+  const resultText = isSuccess
+    ? '깊은 이완 상태에 도달하셨습니다.\n심신이 안정된 상태입니다.'
+    : '명상 중 잡념이 많으셨나요?\n호흡에 조금 더 집중해보세요.';
+  const resultColor = isSuccess
+    ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300'
+    : 'bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300';
 
   return (
     <div className="h-[100svh] bg-[#FAF9F5] dark:bg-[#14161C] text-[#2D3142] dark:text-[#F5F3EF] flex flex-col overflow-hidden">

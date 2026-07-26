@@ -24,7 +24,9 @@ const Profile: React.FC = () => {
   const today = new Date();
   const [year, setYear] = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1);
-  const [selectedDay, setSelectedDay] = useState<number | null>(today.getDate());
+  // 📌 [데모용 고정] 프로필 진입 시 오늘 날짜가 아니라 항상 26일이 선택되도록 고정한다.
+  // (데모 시연용 - 나중에 제거 시 today.getDate()로 교체)
+  const [selectedDay, setSelectedDay] = useState<number | null>(26);
 
   // 현재 보고 있는 년/월 기준으로 기록이 있는 날짜들만 추림
   const sessionDays = useMemo(() => {
