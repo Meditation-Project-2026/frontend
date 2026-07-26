@@ -1,4 +1,4 @@
-import { ArrowUp, Pause, ArrowDown, ChevronRight } from 'lucide-react';
+import { Wind, ArrowUp, Pause, ArrowDown, ChevronRight } from 'lucide-react';
 
 interface BreathingPrepProps {
   onStart: () => void;
@@ -6,14 +6,12 @@ interface BreathingPrepProps {
 
 // 호흡 가이드 화면에 들어가자마자 바로 시작하면 따라가기 버거우니,
 // 4-7-8 단계 안내 + 사용자가 직접 누르는 시작 버튼을 먼저 보여준다.
-// (별도의 3-2-1 카운트다운은 넣지 않음 - 시작하면 BreathingCircle의 첫 들이마시기 단계 자체가
-//  4초 카운트다운(4→3→2→1)을 이미 보여주므로 그걸로 충분함)
 const BreathingPrep: React.FC<BreathingPrepProps> = ({ onStart }) => {
   return (
     <div className="flex-1 flex flex-col items-center justify-center gap-8 px-5">
       <div className="text-center">
         <div className="w-14 h-14 rounded-full bg-primary/15 flex items-center justify-center mx-auto mb-4">
-          <span className="text-2xl">🫁</span>
+          <Wind size={26} className="text-primary" strokeWidth={2} />
         </div>
         <p className="text-lg font-bold text-[#191B1F] dark:text-[#F5F3EF]">4-7-8 호흡을 시작할게요</p>
         <p className="text-xs text-gray-400 dark:text-white/40 mt-1.5">
@@ -21,7 +19,7 @@ const BreathingPrep: React.FC<BreathingPrepProps> = ({ onStart }) => {
         </p>
       </div>
 
-      {/* 4-7-8 흐름 다이어그램: 원 크기가 각 단계의 길이(4/7/8초)를 비례해서 보여줌 */}
+      {/* 4-7-8 흐름 다이어그램 */}
       <div className="flex items-center justify-center gap-1 w-full">
         <div className="flex flex-col items-center gap-2">
           <div className="w-16 h-16 rounded-full bg-[#45947D]/15 border-2 border-[#45947D]/30 flex items-center justify-center">
