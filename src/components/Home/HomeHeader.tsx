@@ -5,9 +5,9 @@ interface HomeHeaderProps {
 // 시간대에 따라 인사말을 자동으로 바꿔준다 (05~11시: 아침, 11~17시: 오후, 17~05시: 저녁)
 const getTimeGreeting = (): string => {
   const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return '좋은 아침이에요';
+  if (hour >= 5 && hour < 12) return '좋은 오후예요';
   if (hour >= 12 && hour < 18) return '좋은 오후예요';
-  return '좋은 저녁이에요';
+  return '좋은 오후예요';
 };
 
 const HomeHeader: React.FC<HomeHeaderProps> = ({ userName = 'BioCalm' }) => {
