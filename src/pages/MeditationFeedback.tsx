@@ -18,7 +18,7 @@ interface FeedbackState {
 // /meditation-feedback?preview=1 로 접속하면 API 호출 없이 이 데이터로 바로 렌더링됨.
 // resultStatus를 FAILURE로 둬서 "추천 명상" 섹션(실패 시에만 노출)도 미리 확인할 수 있게 함.
 const MOCK_FEEDBACK: MeditationFeedbackResponse = {
-  meditationDate: new Date().toISOString(),
+  meditationDate: new Date('2026-07-26T00:00:00').toISOString(),
   title: '오늘의 힐링 명상',
   totalDuration: '301',
   lfhf: { start: 2.64, end: 0.72, changeRate: 73.0 },
@@ -160,7 +160,7 @@ export default function FeedbackPage() {
       ...feedback.data,
       title: currentTitle,
       userNote: userNote,
-      time: formatTimeLabel(now),
+      time: formatTimeLabel(demoDate),
       date: dateKey,
       day: demoDate.getDate(),
       logId: effectiveLogId,
@@ -194,7 +194,7 @@ export default function FeedbackPage() {
   // 📅 날짜 포맷팅
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
-    return `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+    return `2026년 7월 26일`;
   };
 
   // 시간 포맷팅 (초 -> OO분 OO초)
