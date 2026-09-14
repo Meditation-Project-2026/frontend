@@ -29,7 +29,7 @@ const DaySessionList: React.FC<DaySessionListProps> = ({ dateLabel, sessions, on
               <span className="flex-1 min-w-0 text-left">
                 <p className="text-sm font-semibold text-accent dark:text-[#F5F3EF]">{session.title}</p>
                 <p className="text-xs text-gray-400 dark:text-[#F5F3EF]/40 truncate">
-                  {session.note?.trim() ? session.note : '작성된 메모가 없습니다.'}
+                  {session.time ? `${session.time}` : `${session.duration}`}
                 </p>
               </span>
               <ChevronRight size={15} className="text-gray-400 dark:text-[#F5F3EF]/40 shrink-0" />

@@ -142,60 +142,56 @@ export default function FeedbackPage() {
     return `${period} ${hours12}:${minutes}`;
   };
 
-  // 💾 사용자 노트 저장
-  const handleSaveNote = async () => {
-    setIsSaving(true);
-    setSaveMessage(null);
+  // 💾 사용자 노트 및 제목 저장
+    // 💾 사용자 노트 및 제목 저장
+      const handleSaveNote = async () => {
+        setIsSaving(true);
+        setSaveMessage(null);
 
-    const currentTitle = editableTitle || feedback.data?.title || '오늘의 힐링 명상';
-    const now = new Date();
-    // 📌 [데모용 고정] 저장 시 프로필 캘린더에는 실제 오늘 날짜가 아니라
-    // 항상 이번 달 26일에 기록이 생기도록 고정한다. (데모 시연용 - 나중에 제거 시 now로 교체)
-    const demoDate = new Date(now.getFullYear(), now.getMonth(), 26);
-    // logId가 없는 미리보기 상황에서도 기록을 구분해서 저장할 수 있도록 임시 id 발급
-    const effectiveLogId = logId ? parseInt(logId) : Date.now();
-    const dateKey = toDateKey(demoDate);
+        const currentTitle = editableTitle || feedback.data?.title || '오늘의 힐링 명상';
 
-    const recordToSave = {
-      ...feedback.data,
-      title: currentTitle,
-      userNote: userNote,
-      time: formatTimeLabel(demoDate),
-      date: dateKey,
-      day: demoDate.getDate(),
-      logId: effectiveLogId,
-    };
+        // 💡 URL에 logId가 없으면 테스트용으로 1L(또는 localStorage의 최근 logId)을 사용하도록 보완
+        const targetLogId = logId ? parseInt(logId) : 1;
 
-    // 기록은 logId별로 저장해서, 서로 다른 날짜/기록을 다시 열어도 각각의 내용이 보이도록 한다.
-    localStorage.setItem(`savedRecord_${effectiveLogId}`, JSON.stringify(recordToSave));
-    localStorage.setItem('savedRecord_latest', JSON.stringify(recordToSave));
+        try {
+          console.log('DB 저장 요청 시작:', { logId: targetLogId, title: currentTitle, userNote });
 
-    // 📅 프로필 캘린더에 저장 기록을 반영 (26일에 표시되고, 다시 눌러서 열람 가능)
-    addSession(demoDate, {
-      title: currentTitle,
-      time: formatTimeLabel(now),
-      note: userNote,
-      logId: effectiveLogId,
-    });
+          const response = await fetch(`http://localhost:8080/main/records/${targetLogId}/note`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              title: currentTitle,
+              userNote: userNote,
+            }),
+          });
 
-    if (logId) {
-      updateUserNote({
-        logId: parseInt(logId),
-        userNote: userNote,
-        title: currentTitle,
-      }).catch((e) => console.log('Backend sync skipped'));
-    }
-    setTimeout(() => {
-      setIsSaving(false);
-      navigate('/home');
-    }, 500);
-  };
+          if (!response.ok) {
+            throw new Error(`서버 응답 에러: ${response.status}`);
+          }
+
+          console.log('DB 저장 성공!');
+
+          // 저장이 성공했을 때 안전하게 홈(또는 프로필)으로 이동
+          setIsSaving(false);
+          navigate('/home');
+
+        } catch (e) {
+          console.error('메모 및 제목 저장 실패:', e);
+          setIsSaving(false);
+          alert('저장에 실패했습니다. 백엔드 콘솔과 F12 네트워크 탭을 확인해주세요.');
+        }
+      };
 
   // 📅 날짜 포맷팅
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return `2026년 7월 26일`;
-  };
+    const formatDate = (dateString?: string): string => {
+      const targetDate = dateString ? new Date(dateString) : new Date();
+      const y = targetDate.getFullYear();
+      const m = targetDate.getMonth() + 1;
+      const d = targetDate.getDate();
+      return `${y}년 ${m}월 ${d}일`;
+    };
 
   // 시간 포맷팅 (초 -> OO분 OO초)
   const formatDuration = (seconds: string | number): string => {
@@ -394,22 +390,28 @@ export default function FeedbackPage() {
             <h3 className="text-base font-bold text-[#191B1F] dark:text-[#F5F3EF] mb-3">추천 명상</h3>
             <div className="flex flex-col gap-2.5">
               {recommendedList.map((meditation) => (
-                <button
+                <div
                   key={meditation.id}
-                  onClick={() => navigate(`/face-detection?id=${meditation.id}&type=full`)}
-                  className="w-full flex items-center gap-3 p-3 bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-2xl text-left active:scale-[0.98] transition-transform"
+                  role="button"
+                  tabIndex={0}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navigate(`/face-detection?id=${meditation.id}&type=full`);
+                  }}
+                  className="w-full flex items-center gap-3 p-3 bg-white dark:bg-[#1E212B] border border-gray-100 dark:border-white/[0.07] rounded-2xl text-left cursor-pointer active:scale-[0.98] transition-transform"
                 >
                   {meditation.backgroundUrl && (
                     <div
-                      className="w-14 h-14 rounded-xl bg-cover bg-center shrink-0"
+                      className="w-14 h-14 rounded-xl bg-cover bg-center shrink-0 pointer-events-none"
                       style={{ backgroundImage: `url(${meditation.backgroundUrl})` }}
                     />
                   )}
-                  <p className="flex-1 min-w-0 text-sm font-bold text-[#191B1F] dark:text-[#F5F3EF] truncate">
+                  <p className="flex-1 min-w-0 text-sm font-bold text-[#191B1F] dark:text-[#F5F3EF] truncate pointer-events-none">
                     {meditation.title}
                   </p>
-                  <ChevronRight size={16} className="text-gray-300 dark:text-white/30 shrink-0" />
-                </button>
+                  <ChevronRight size={16} className="text-gray-300 dark:text-white/30 shrink-0 pointer-events-none" />
+                </div>
               ))}
             </div>
           </div>
